@@ -1,83 +1,125 @@
-from sqlalchemy import String, JSON, ForeignKey, UniqueConstraint, create_engine
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    Mapped,
-    sessionmaker,
-    mapped_column,
-    relationship,
-)
 import os
+import uuid
+from datetime import datetime
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "database.db")
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    text,
+)
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+# Database connection setup - Per requirements, using Async SQLAlchemy
+# For local development, set DATABASE_URL=postgresql+asyncpg://user:password@localhost/dbname
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres",
+)
+
+# If Railway provides a URL starting with postgresql://, convert it for asyncpg
+if DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+engine = create_async_engine(DATABASE_URL, echo=True)
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class Board(Base):
-    __tablename__ = "boards"
+class Customer(Base):
+    __tablename__ = "customers"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
-    link: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-
-    # set one-to-many relationship (Board - Article)
-    articles: Mapped[list["Article"]] = relationship(
-        back_populates="board", cascade="all, delete-orphan"
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("uuid_generate_v4()"),
+    )
+    table_num: Mapped[int] = mapped_column(Integer, nullable=False)
+    entry_time: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )
 
-    def to_json(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "articles": [article.to_json() for article in self.articles],
-        }
-
-    def write(self, file):
-        for article in self.articles:
-            file.write(f"📌 {article.title}\n")
-            file.write(f"🔗 링크\n{article.link}\n\n")
+    # Relationship: A customer can have multiple orders
+    orders: Mapped[list["Order"]] = relationship(back_populates="customer")
 
 
-class Article(Base):
-    __tablename__ = "articles"
-    __table_args__ = (
-        UniqueConstraint("board_id", "title", name="uq_board_title"),
-    )  # 같은 Board 안에서는 Article들의 title이 unique해야 함
+class Menu(Base):
+    __tablename__ = "menus"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    pinned: Mapped[bool] = mapped_column(default=False, nullable=False)
-    date: Mapped[str | None] = mapped_column(String(10), unique=False, nullable=True)
-    title: Mapped[str] = mapped_column(String(100), nullable=False)
-    content: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    link: Mapped[str] = mapped_column(String(100), unique=False, nullable=False)
+    menu_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("uuid_generate_v4()"),
+    )
+    menu_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    price: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    options: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
 
-    # set one-to-many relationship (Board - Article)
-    board_id: Mapped[int] = mapped_column(ForeignKey("boards.id"), nullable=False)
-    board: Mapped["Board"] = relationship(back_populates="articles")
-
-    def to_json(self):
-        return {
-            "id": self.id,
-            "pinned": self.pinned,
-            "date": self.date,
-            "title": self.title,
-            "content": self.content,
-            "link": self.link,
-            "board_id": self.board_id,
-        }
+    # Relationship: A menu can be part of many order_items
+    order_items: Mapped[list["OrderItem"]] = relationship(back_populates="menu")
 
 
-engine = create_engine("sqlite:///database.db", echo=True)  # sqlite를 사용하는 경우
-Base.metadata.create_all(engine)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+class Order(Base):
+    __tablename__ = "orders"
+
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("uuid_generate_v4()"),
+    )
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.customer_id", name="FK_orders_customers"),
+        nullable=False,
+    )
+    order_time: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
+    )
+    total_price: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    depositor: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    payment_status: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Relationships
+    customer: Mapped["Customer"] = relationship(back_populates="orders")
+    items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+class OrderItem(Base):
+    __tablename__ = "order_items"
+
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("orders.order_id", name="FK_order_items_orders"),
+        primary_key=True,
+    )
+    menu_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("menus.menu_id", name="FK_order_items_menus"),
+        primary_key=True,
+    )
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    price_at_order: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    selected_option: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    is_served: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Relationships
+    order: Mapped["Order"] = relationship(back_populates="items")
+    menu: Mapped["Menu"] = relationship(back_populates="order_items")

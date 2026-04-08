@@ -1,29 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, WebSocket
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db
-from ..database.db import initialize_boards, get_board_by_name
+from ..database.db import initialize_data
 
 router = APIRouter()
 
 
 @router.get("/init")
-async def initialize(db: Session = Depends(get_db)):
+async def initialize(db: AsyncSession = Depends(get_db)):
     try:
-        initialize_boards(db)
+        await initialize_data(db)
 
         return {"message": "[서버 메시지] DB를 성공적으로 초기화했습니다."}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"[⚠️ 서버 오류] {str(e)}")
-
-
-@router.get("/find_board/{board_name}")  # path parameter 사용
-async def find_board(board_name: str, db: Session = Depends(get_db)):
-    try:
-        board = get_board_by_name(db, board_name)
-
-        return {"게시판 제목": f"{board.name}", "게시판 링크": f"{board.link}"}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"[⚠️ 서버 오류] {str(e)}")
