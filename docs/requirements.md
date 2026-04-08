@@ -9,6 +9,8 @@
 
 ## Development Rules
 
-- Backend: Use `uv` for dependency management.
+- Backend:
+    - Use `uv` for dependency management.
+    - Use latest python typing conventions. e.g.) Use Mapped[list[str] | None] instead of Mapped[Optional[List[str]]]
 - Database: Use Alembic for migrations.
 - API: Follow RESTful conventions.
