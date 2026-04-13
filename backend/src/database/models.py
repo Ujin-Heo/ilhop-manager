@@ -10,6 +10,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
@@ -46,6 +47,26 @@ class Base(DeclarativeBase):
     pass
 
 
+class Table(Base):
+    __tablename__ = "tables"
+    __table_args__ = (
+        UniqueConstraint("grid_row", "grid_col", name="uq_table_grid_pos"),
+    )
+
+    table_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("uuid_generate_v4()"),
+    )
+    table_num: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    grid_row: Mapped[int] = mapped_column(Integer, nullable=False)
+    grid_col: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    # Relationshps
+    customers: Mapped[list["Customer"]] = relationship(back_populates="table")
+
+
 class Customer(Base):
     __tablename__ = "customers"
 
@@ -54,13 +75,16 @@ class Customer(Base):
         primary_key=True,
         server_default=text("uuid_generate_v4()"),
     )
-    table_num: Mapped[int] = mapped_column(Integer, nullable=False)
+    table_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("tables.table_id", name="FK_customers_tables"), nullable=False
+    )
     entry_time: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )
-    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    # Relationship: A customer can have multiple orders
+    # Relationships
+    table: Mapped["Table"] = relationship(back_populates="customers")
     orders: Mapped[list["Order"]] = relationship(back_populates="customer")
 
 

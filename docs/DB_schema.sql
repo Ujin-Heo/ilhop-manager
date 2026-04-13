@@ -1,9 +1,19 @@
 -- UUID 확장이 필요하다면 실행
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+CREATE TABLE "tables" (
+    "table_id"      uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    "table_num"     int UNIQUE NOT NULL, -- 손님에게 보이는 테이블 번호
+    "grid_row"      int NOT NULL,        -- 그리드 상의 세로 위치
+    "grid_col"      int NOT NULL,        -- 그리드 상의 가로 위치
+    -- "max_seats"     int DEFAULT 4,       -- (선택) 해당 테이블의 수용 인원
+    "is_available"  bool DEFAULT true,   -- (선택) 테이블 파손 등으로 사용 불가한 경우 대비
+    UNIQUE("grid_row", "grid_col")       -- 같은 위치에 두 테이블이 올 수 없음
+);
+
 CREATE TABLE "customers" (
     "customer_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    "table_num"   int NOT NULL,
+    "table_id"    uuid NOT NULL CONSTRAINT "FK_customers_tables" REFERENCES "tables"("table_id"),
     "entry_time"  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "is_active"   boolean NOT NULL DEFAULT false
 );
