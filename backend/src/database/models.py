@@ -58,6 +58,7 @@ class Customer(Base):
     entry_time: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationship: A customer can have multiple orders
     orders: Mapped[list["Order"]] = relationship(back_populates="customer")

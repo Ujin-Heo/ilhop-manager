@@ -4,7 +4,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE "customers" (
     "customer_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     "table_num"   int NOT NULL,
-    "entry_time"  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "entry_time"  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "is_active"   boolean NOT NULL DEFAULT false
 );
 
 CREATE TABLE "menus" (
@@ -21,7 +22,7 @@ CREATE TABLE "orders" (
     "order_time"     timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "total_price"    bigint NOT NULL,
     "depositor"      varchar(50),
-    "payment_status" bool DEFAULT false NOT NULL
+    "payment_status" boolean DEFAULT false NOT NULL
 );
 
 CREATE TABLE "order_items" ( -- 'menus by order' 대신 직관적인 이름
@@ -30,6 +31,6 @@ CREATE TABLE "order_items" ( -- 'menus by order' 대신 직관적인 이름
     "quantity"    int NOT NULL CHECK (quantity > 0),
     "price_at_order" bigint NOT NULL, -- 주문 당시 가격 기록
     "selected_option" varchar(50),
-    "is_served"   bool DEFAULT false NOT NULL,
+    "is_served"   boolean DEFAULT false NOT NULL,
     PRIMARY KEY ("order_id", "menu_id")
 );
