@@ -7,7 +7,7 @@ CREATE TABLE "tables" (
     "grid_row"      int NOT NULL,        -- 그리드 상의 세로 위치
     "grid_col"      int NOT NULL,        -- 그리드 상의 가로 위치
     -- "max_seats"     int DEFAULT 4,       -- (선택) 해당 테이블의 수용 인원
-    "is_available"  bool DEFAULT true,   -- (선택) 테이블 파손 등으로 사용 불가한 경우 대비
+    "is_available"  bool NOT NULL DEFAULT true,   -- (선택) 테이블 파손 등으로 사용 불가한 경우 대비
     UNIQUE("grid_row", "grid_col")       -- 같은 위치에 두 테이블이 올 수 없음
 );
 
@@ -32,7 +32,8 @@ CREATE TABLE "orders" (
     "order_time"     timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "total_price"    bigint NOT NULL,
     "depositor"      varchar(50),
-    "payment_status" boolean DEFAULT false NOT NULL
+    "is_paid" boolean DEFAULT false NOT NULL,
+    "memo"           varchar(255)
 );
 
 CREATE TABLE "order_items" ( -- 'menus by order' 대신 직관적인 이름

@@ -122,7 +122,8 @@ class Order(Base):
     )
     total_price: Mapped[int] = mapped_column(BigInteger, nullable=False)
     depositor: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    payment_status: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_paid: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    memo: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Relationships
     customer: Mapped["Customer"] = relationship(back_populates="orders")
