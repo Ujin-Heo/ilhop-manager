@@ -353,6 +353,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - menu
+      summary: 새로운 메뉴 추가
+      description: |
+        메뉴판에 새로운 메뉴를 추가합니다.
+        백엔드에서는 `menu_id`를 UUID로 자동 생성합니다.
+      operationId: createMenu
+      requestBody:
+        description: 추가할 메뉴의 정보
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuCreateRequest'
+      responses:
+        '201':
+          description: 메뉴 추가 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Menu'
+        '400':
+          description: 잘못된 요청 데이터
+        default:
+          description: 예기치 못한 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /orders:
     get:
@@ -650,6 +680,32 @@ components:
         - customerId
         - entryTime 
         - isActive
+
+    MenuCreateRequest:
+      type: object
+      properties:
+        menuName:
+          type: string
+          description: 음식 또는 음료 이름
+          example: "치킨 가라아게"
+        price:
+          type: integer
+          format: int64
+          description: "판매 가격 (원 단위)"
+        imageUrl:
+          type: string
+          format: uri
+          description: "메뉴 사진 경로"
+          example: "https://example.com/images/chicken.jpg"
+        options:
+          type: array
+          description: "선택 가능한 옵션 (맛, 사이즈 등)"
+          items:
+            type: string
+          example: ["살구맛", "청포도맛", "레몬맛"]
+      required:
+        - menuName
+        - price
 
     Menu:
       type: object
