@@ -12,6 +12,7 @@ tags:
   - name: menu
   - name: order
   - name: order item
+  - name: external
 paths:
   /example:
       post: # get/post/put/delete 중 하나
@@ -91,8 +92,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/TableStatus'
-        '500':
-          description: 서버 내부 오류
+        default:
+          description: "서버 오류"
           content:
             application/json:
               schema:
@@ -573,6 +574,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /external/bank-webhook:
+    post:
+      tags:
+        - external
+      summary: MacroDroid이 입급 확인을 알릴 때 사용함
+      description: |
+        총무의 핸드폰으로 토스 입금 알림이 오면,
+        핸드폰에 설치된 MacroDroid 앱이 아래와 같은 형식의 request body를 담은 request를 백엔드로 보냄 
+      operationId: confirmPayment
+      requestBody:
+        description: 입금자명, 송금 액수, 알림을 보낸 앱(토스) 정보를 담음
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentConfirmInfo'
+      responses:
+        '200':
+          description: 성공적으로 입금을 확인했습니다.
+        default:
+            description: 서버 오류
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
 
 components:
   schemas:
@@ -924,6 +949,19 @@ components:
         - menuName
         - quantity
         - isServed
+    
+    PaymentConfirmInfo:
+      type: object
+      properties:
+        title:
+          description: 알림 제목
+          type: string
+        message:
+          description: 알림 본문
+          type: string
+        app:
+          description: 알림 보낸 앱
+          type: string
 
     Error:
       type: object
