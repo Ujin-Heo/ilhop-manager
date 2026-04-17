@@ -6,60 +6,85 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from pydantic import AnyUrl, AwareDatetime, BaseModel, Field, conint, constr
+from pydantic import (
+    AnyUrl,
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    conint,
+    constr,
+    model_validator,
+)
+from pydantic.alias_generators import to_camel
 
 
-class TableCreateRequest(BaseModel):
-    tableNum: int = Field(..., description="손님에게 보일 테이블 번호", examples=[15])
-    gridRow: int = Field(..., description="매장 그리드 상의 가로 행 위치", examples=[3])
-    gridCol: int = Field(..., description="매장 그리드 상의 세로 열 위치", examples=[5])
-    isAvailable: bool | None = Field(
+class BaseSchema(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,  # ORM 호환 (Dict뿐만 아니라 파이썬 객체로부터도 pydantic 객체 생성 가능)
+        populate_by_name=True,  # alias가 아닌 실제 Field 이름으로도 접근 가능 (snake_case, camelCase 모두로 데이터 접근 가능)
+        alias_generator=to_camel,  # snake_case -> camelCase 자동 변환 (모든 Field에 대해서 camelCase 형식의 alias가 추가됨)
+    )
+
+
+class TableCreateRequest(BaseSchema):
+    table_num: int = Field(..., description="손님에게 보일 테이블 번호", examples=[15])
+    grid_row: int = Field(..., description="매장 그리드 상의 가로 행 위치", examples=[3])
+    grid_col: int = Field(..., description="매장 그리드 상의 세로 열 위치", examples=[5])
+    is_available: bool | None = Field(
         True, description="즉시 사용 가능 여부 (기본값 true)", examples=[True]
     )
 
 
-class TableUpdateRequest(BaseModel):
-    tableNum: int | None = Field(
+class TableUpdateRequest(BaseSchema):
+    table_num: int | None = Field(
         None, description="변경할 새로운 테이블 번호", examples=[12]
     )
-    isAvailable: bool | None = Field(
+    is_available: bool | None = Field(
         None, description="테이블 사용 가능 여부 상태", examples=[False]
     )
 
 
-class TableStatus(BaseModel):
-    tableId: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
-    tableNum: int = Field(..., description="손님에게 보이는 테이블 번호", examples=[7])
-    gridRow: int = Field(..., description="그리드 상의 세로 위치", examples=[2])
-    gridCol: int = Field(..., description="그리드 상의 가로 위치", examples=[3])
-    isAvailable: bool = Field(
+class TableStatus(BaseSchema):
+    table_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
+    table_num: int = Field(..., description="손님에게 보이는 테이블 번호", examples=[7])
+    grid_row: int = Field(..., description="그리드 상의 세로 위치", examples=[2])
+    grid_col: int = Field(..., description="그리드 상의 가로 위치", examples=[3])
+    is_available: bool = Field(
         ...,
         description="테이블 사용 가능 여부 (한 손님이 두 테이블 사용 등)",
         examples=[True],
     )
-    currentCustomer: CustomerBrief | None = None
+    current_customer: CustomerBrief | None = Field(None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def extract_current_customer_from_customers(cls, data):
+        if hasattr(data, "customers"):
+            data.current_customer = data.customers[0] if data.customers else None
+        return data
 
 
-class CustomerCreateRequest(BaseModel):
-    tableNum: int = Field(..., description="손님이 착석한 테이블 번호", examples=[7])
+class CustomerCreateRequest(BaseSchema):
+    table_num: int = Field(..., description="손님이 착석한 테이블 번호", examples=[7])
 
 
-class CustomerBrief(BaseModel):
-    customerId: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
-    entryTime: AwareDatetime = Field(
+class CustomerBrief(BaseSchema):
+    customer_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
+    entry_time: AwareDatetime = Field(
         ...,
         description="입장 시각 (프론트엔드에서 경과 시간 계산용)",
         examples=["2024-04-12T18:25:30Z"],
     )
-    isActive: bool = Field(..., examples=[True])
+    is_active: bool = Field(..., examples=[True])
 
 
-class MenuCreateRequest(BaseModel):
-    menuName: str = Field(
+class MenuCreateRequest(BaseSchema):
+    menu_name: str = Field(
         ..., description="음식 또는 음료 이름", examples=["치킨 가라아게"]
     )
     price: int = Field(..., description="판매 가격 (원 단위)")
-    imageUrl: AnyUrl | None = Field(
+    image_url: AnyUrl | None = Field(
         None,
         description="메뉴 사진 경로",
         examples=["https://example.com/images/chicken.jpg"],
@@ -71,13 +96,13 @@ class MenuCreateRequest(BaseModel):
     )
 
 
-class Menu(BaseModel):
-    menuId: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440001"])
-    menuName: str = Field(
+class Menu(BaseSchema):
+    menu_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440001"])
+    menu_name: str = Field(
         ..., description="음식 또는 음료 이름", examples=["치킨 가라아게"]
     )
     price: int = Field(..., description="판매 가격 (원 단위)", examples=[15000])
-    imageUrl: AnyUrl | None = Field(
+    image_url: AnyUrl | None = Field(
         None,
         description="메뉴 사진 경로",
         examples=["https://example.com/images/chicken.jpg"],
@@ -89,41 +114,41 @@ class Menu(BaseModel):
     )
 
 
-class OrderCreateRequest(BaseModel):
-    customerId: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440005"])
-    totalPrice: int = Field(..., examples=[25000])
+class OrderCreateRequest(BaseSchema):
+    customer_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440005"])
+    total_price: int = Field(..., examples=[25000])
     depositor: str | None = Field(
         None, description="입금자명 (현금 입금 확인용)", examples=["홍길동"]
     )
     items: list[OrderItemRequest]
 
 
-class OrderDetail(BaseModel):
-    orderId: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440002"])
-    tableNum: int = Field(..., examples=[7])
-    customerId: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
-    orderTime: AwareDatetime = Field(..., examples=["2024-04-12T19:00:00Z"])
-    totalPrice: int = Field(..., examples=[30000])
+class OrderDetail(BaseSchema):
+    order_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440002"])
+    table_num: int = Field(..., examples=[7])
+    customer_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
+    order_time: AwareDatetime = Field(..., examples=["2024-04-12T19:00:00Z"])
+    total_price: int = Field(..., examples=[30000])
     depositor: str | None = Field(None, examples=["홍길동"])
-    isPaid: bool = Field(..., examples=[False])
+    is_paid: bool = Field(..., examples=[False])
     memo: str | None = Field(None, examples=["현금 결제 완료"])
     items: list[OrderItemBrief] | None = None
 
 
-class OrderSummaryResponse(BaseModel):
-    totalAmount: int = Field(
+class OrderSummaryResponse(BaseSchema):
+    total_amount: int = Field(
         ..., description="해당 테이블의 전체 결제 금액 합계", examples=[25000]
     )
-    orderItems: list[OrderItem]
+    order_items: list[OrderItem]
 
 
-class OrderPaymentUpdateRequest(BaseModel):
-    isPaid: bool = Field(
+class OrderPaymentUpdateRequest(BaseSchema):
+    is_paid: bool = Field(
         ..., description="변경할 결제 상태 (수동 승인 시 true)", examples=[True]
     )
 
 
-class OrderMemoUpdateRequest(BaseModel):
+class OrderMemoUpdateRequest(BaseSchema):
     memo: constr(max_length=255) = Field(
         ...,
         description="작성할 메모 내용 (최대 255자)",
@@ -131,41 +156,41 @@ class OrderMemoUpdateRequest(BaseModel):
     )
 
 
-class OrderItemRequest(BaseModel):
-    menuId: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440001"])
+class OrderItemRequest(BaseSchema):
+    menu_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440001"])
     quantity: conint(ge=1) = Field(..., examples=[2])
-    priceAtOrder: int = Field(..., description="주문 시점의 메뉴 가격", examples=[8000])
-    selectedOption: str | None = Field(None, examples=["살구맛"])
+    price_at_order: int = Field(..., description="주문 시점의 메뉴 가격", examples=[8000])
+    selected_option: str | None = Field(None, examples=["살구맛"])
 
 
-class OrderItemServedUpdateRequest(BaseModel):
-    isServed: bool = Field(..., description="서빙 완료 여부", examples=[True])
+class OrderItemServedUpdateRequest(BaseSchema):
+    is_served: bool = Field(..., description="서빙 완료 여부", examples=[True])
 
 
-class OrderItemBrief(BaseModel):
-    menuName: str = Field(..., examples=["치킨 가라아게"])
+class OrderItemBrief(BaseSchema):
+    menu_name: str = Field(..., examples=["치킨 가라아게"])
     quantity: conint(ge=1) = Field(..., examples=[2])
-    selectedOption: str | None = Field(None, examples=["살구맛"])
-    isServed: bool = Field(..., examples=[False])
+    selected_option: str | None = Field(None, examples=["살구맛"])
+    is_served: bool = Field(..., examples=[False])
 
 
-class OrderItem(BaseModel):
-    menuName: str = Field(..., examples=["좋은토닉"])
-    totalQuantity: int = Field(
+class OrderItem(BaseSchema):
+    menu_name: str = Field(..., examples=["좋은토닉"])
+    total_quantity: int = Field(
         ..., description="메뉴+옵션 조합의 합계 수량", examples=[2]
     )
-    unitPrice: int = Field(..., examples=[5000])
-    selectedOption: str | None = Field(
+    unit_price: int = Field(..., examples=[5000])
+    selected_option: str | None = Field(
         None, description="선택된 옵션명 (없으면 null)", examples=["살구맛"]
     )
 
 
-class PaymentConfirmInfo(BaseModel):
+class PaymentConfirmInfo(BaseSchema):
     title: str | None = Field(None, description="알림 제목")
     message: str | None = Field(None, description="알림 본문")
     app: str | None = Field(None, description="알림 보낸 앱")
 
 
-class Error(BaseModel):
+class Error(BaseSchema):
     code: str
     message: str
