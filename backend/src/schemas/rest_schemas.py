@@ -29,8 +29,12 @@ class BaseSchema(BaseModel):
 
 class TableCreateRequest(BaseSchema):
     table_num: int = Field(..., description="손님에게 보일 테이블 번호", examples=[15])
-    grid_row: int = Field(..., description="매장 그리드 상의 가로 행 위치", examples=[3])
-    grid_col: int = Field(..., description="매장 그리드 상의 세로 열 위치", examples=[5])
+    grid_row: int = Field(
+        ..., description="매장 그리드 상의 가로 행 위치", examples=[3]
+    )
+    grid_col: int = Field(
+        ..., description="매장 그리드 상의 세로 열 위치", examples=[5]
+    )
     is_available: bool | None = Field(
         True, description="즉시 사용 가능 여부 (기본값 true)", examples=[True]
     )
@@ -55,7 +59,9 @@ class TableStatus(BaseSchema):
         description="테이블 사용 가능 여부 (한 손님이 두 테이블 사용 등)",
         examples=[True],
     )
-    current_customer: CustomerBrief | None = Field(None)
+    current_customer: CustomerBrief | None = Field(
+        None, description="현재 해당 테이블을 사용하고 있는 손님"
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -159,7 +165,9 @@ class OrderMemoUpdateRequest(BaseSchema):
 class OrderItemRequest(BaseSchema):
     menu_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440001"])
     quantity: conint(ge=1) = Field(..., examples=[2])
-    price_at_order: int = Field(..., description="주문 시점의 메뉴 가격", examples=[8000])
+    price_at_order: int = Field(
+        ..., description="주문 시점의 메뉴 가격", examples=[8000]
+    )
     selected_option: str | None = Field(None, examples=["살구맛"])
 
 
