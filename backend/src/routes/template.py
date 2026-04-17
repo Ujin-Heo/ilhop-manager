@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
 
 from ..database.models import get_db
-from ..database.crud import add_record_to_db  # 보통 crud나 service 레이어로 명명
+from ..database.crud import add_record_to_db
 from ..schemas.rest_schemas import (
     ExampleRequestBody,
     ExampleResponseBody,
@@ -22,7 +21,7 @@ router = APIRouter()
 async def template_endpoint(
     path_parameter: str,  # Path Parameter
     request_data: ExampleRequestBody,  # Request Body (Pydantic)
-    query_parameter: Optional[str] = None,  # Query Parameter
+    query_parameter: str | None = None,  # Query Parameter
     db: AsyncSession = Depends(get_db),  # DB Session Injection
 ):
     """
@@ -33,8 +32,7 @@ async def template_endpoint(
         record_data = request_data.model_dump()
         record_data.update({"id": path_parameter, "extra": query_parameter})
 
-        # 2. 비즈니스 로직 및 DB 작업
-        # SQLAlchemy 모델 인스턴스 생성을 crud 함수 내부에서 하거나 여기서 수행
+        # 2. 비즈니스 로직 및 DB 작업 (CRUD 작업을 위한 함수들을 호출하기)
         new_record = await add_record_to_db(db, record_data)
 
         # 3. 결과 반환 (FastAPI가 ExampleResponseBody 형식으로 자동 변환)
