@@ -39,7 +39,7 @@ async def template_endpoint(
         # 3. 결과 반환 (FastAPI가 ExampleResponseBody 형식으로 자동 변환)
         return new_record
 
-    except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 중복 데이터)
+    except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 음수 데이터)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"[❌ 잘못된 요청] {str(ve)}",
