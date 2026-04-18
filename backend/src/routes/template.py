@@ -13,6 +13,7 @@ router = APIRouter()
 
 @router.post(
     "/template/{path_parameter}",
+    operation_id="template_endpoint",
     response_model=ExampleResponseBody,  # Response Body (Pydantic)
     status_code=status.HTTP_201_CREATED,
     tags=["Menu"],

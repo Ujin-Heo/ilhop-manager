@@ -10,6 +10,7 @@ router = APIRouter()
 
 @router.get(
     "/tables",
+    operation_id="get_tables",
     response_model=list[TableStatus],  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,
     tags=["table"],
