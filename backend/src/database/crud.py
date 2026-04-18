@@ -2,7 +2,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from .models import Table, Customer, Menu, Order, OrderItem
-from ..schemas.rest_schemas import TableCreateRequest
+from ..schemas.rest_schemas import TableCreateRequest, TableUpdateRequest
 
 
 # SQLAlchemy로 SELECT문 표현하기
@@ -48,3 +48,26 @@ async def add_new_table_to_db(
     await db.refresh(new_table)
 
     return new_table
+
+
+async def update_table_in_db(
+    db: AsyncSession, table_id: str, request_data: TableUpdateRequest
+) -> Table:
+    # 1. DB에서 request_data의 table_id를 가진 Table을 찾기
+    stmt = select(Table).where(Table.table_id == table_id)
+    result = await db.execute(stmt)
+    table_to_update: Table = result.scalar_one_or_none()
+
+    if not table_to_update:
+        raise ValueError(f"ID가 {table_id}인 테이블을 찾을 수 없습니다.")
+
+    # 2. requst_data 안의 정보로 선택한 Table을 업데이트하기
+    update_data = request_data.model_dump(exclude_unset=True)  # None인 field는 제외함
+    for key, value in update_data.items():
+        setattr(table_to_update, key, value)
+
+    # 3. 수정 내용 반영
+    await db.commit()
+    await db.refresh(table_to_update)
+
+    return table_to_update

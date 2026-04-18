@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db, Table
-from ..database.crud import get_tables_from_db, add_new_table_to_db
+from ..database.crud import get_tables_from_db, add_new_table_to_db, update_table_in_db
 from ..schemas.rest_schemas import TableStatus, TableCreateRequest, TableUpdateRequest
 
 router = APIRouter()
@@ -72,6 +72,39 @@ async def create_table(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"[❌ 데이터 충돌] 이미 해당 번호의 테이블이 있거나, 지정한 위치에 다른 테이블이 존재합니다. {str(ie)}",
         )
+    except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 음수 데이터)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"[❌ 잘못된 요청] {str(ve)}",
+        )
+    except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.patch(
+    "/tables/{table_id}",
+    operation_id="update_table",
+    response_model=TableStatus,  # Response Body (Pydantic)
+    status_code=status.HTTP_200_OK,
+    tags=["table"],
+    summary="테이블 정보 수정",
+)
+async def update_table(
+    table_id: str,  # Path Parameter
+    request_data: TableUpdateRequest,  # Request Body (Pydantic)
+    db: AsyncSession = Depends(get_db),  # DB Session Injection
+):
+    """
+    특정 테이블의 번호(`tableNum`)를 변경하거나,
+    테이블 파손 등의 사유로 이용 가능 여부(`isAvailable`)를 업데이트할 때 사용합니다.
+    """
+    try:
+        updated_table: Table = await update_table_in_db(db, table_id, request_data)
+        return updated_table
+
     except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 음수 데이터)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
