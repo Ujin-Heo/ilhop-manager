@@ -136,7 +136,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   
-  /tables/{tableId}:
+  /tables/{table_id}:
     patch:
       tags:
         - table
@@ -285,7 +285,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   
-  /customers/{customerId}/order-summary:
+  /customers/{customer_id}/order-summary:
     get:
       tags:
         - customer
@@ -444,7 +444,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   
-  /orders/{orderId}/payment:
+  /orders/{order_id}/payment:
     patch:
       tags:
         - order
@@ -484,7 +484,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   
-  /orders/{orderId}/memo:
+  /orders/{order_id}/memo:
     patch:
       tags:
         - order
@@ -525,7 +525,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /order-items/{orderId}/{menuId}:
+  /order-items/{order_id}/{menu_id}:
     patch:
       tags:
         - order item
