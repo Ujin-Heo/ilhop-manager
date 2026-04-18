@@ -3,7 +3,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db, Table
-from ..database.crud import get_tables_from_db, add_new_table_to_db, update_table_in_db
+from ..database.crud import (
+    get_tables_from_db,
+    add_new_table_to_db,
+    update_table_in_db,
+    delete_table_from_db,
+)
 from ..schemas.rest_schemas import TableStatus, TableCreateRequest, TableUpdateRequest
 
 router = APIRouter()
@@ -105,10 +110,49 @@ async def update_table(
         updated_table: Table = await update_table_in_db(db, table_id, request_data)
         return updated_table
 
-    except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 음수 데이터)
+    except ValueError as ve:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"[❌ 잘못된 요청] {str(ve)}",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 해당 테이블을 찾을 수 없음] {str(ve)}",
+        )
+    except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.delete(
+    "/tables/{table_id}",
+    operation_id="delete_table",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["table"],
+    summary="특정 테이블 삭제",
+)
+async def delete_table(
+    table_id: str,  # Path Parameter
+    db: AsyncSession = Depends(get_db),  # DB Session Injection
+):
+    """
+    지정한 UUID를 가진 테이블을 시스템에서 삭제합니다.
+    단, 해당 테이블에 아직 `isActive: true`인 손님이 있거나 결제되지 않은 주문이 연결되어 있을 경우
+    데이터 무결성을 위해 삭제가 제한될 수 있습니다.
+    """
+    try:
+        await delete_table_from_db(db, table_id)
+
+        # 삭제 성공 시 반환할 콘텐츠 없음 (HTTP Code 204)
+
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="[❌ 삭제 제한] 연결된 고객이나 주문 데이터가 있어 삭제할 수 없습니다. 이용 현황을 먼저 정리해 주세요.",
+        )
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 해당 테이블을 찾을 수 없음] {str(ve)}",
         )
     except Exception as e:  # 서버 내부 에러
         raise HTTPException(

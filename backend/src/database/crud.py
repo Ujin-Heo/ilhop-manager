@@ -54,9 +54,12 @@ async def update_table_in_db(
     db: AsyncSession, table_id: str, request_data: TableUpdateRequest
 ) -> Table:
     # 1. DB에서 request_data의 table_id를 가진 Table을 찾기
-    stmt = select(Table).where(Table.table_id == table_id)
-    result = await db.execute(stmt)
-    table_to_update: Table = result.scalar_one_or_none()
+    # stmt = select(Table).where(Table.table_id == table_id)
+    # result = await db.execute(stmt)
+    # table_to_update: Table = result.scalar_one_or_none()
+
+    # 위의 세 줄보다 db.get() 사용하는 게 더 효율적임
+    table_to_update = await db.get(Table, table_id)
 
     if not table_to_update:
         raise ValueError(f"ID가 {table_id}인 테이블을 찾을 수 없습니다.")
@@ -71,3 +74,17 @@ async def update_table_in_db(
     await db.refresh(table_to_update)
 
     return table_to_update
+
+
+async def delete_table_from_db(db: AsyncSession, table_id: str):
+    # 1. DB에서 request_data의 table_id를 가진 Table을 찾기
+    table_to_delete = await db.get(Table, table_id)
+
+    if not table_to_delete:
+        raise ValueError(f"ID가 {table_id}인 테이블을 찾을 수 없습니다.")
+
+    # 2. 선택한 Table 삭제하기
+    await db.delete(table_to_delete)
+
+    # 3. 수정 내용 반영
+    await db.commit()
