@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import uuid
 from datetime import datetime
 
@@ -17,11 +18,14 @@ from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+# .env 파일 로드 (backend 디렉토리 기준)
+load_dotenv()
+
 # Database connection setup - Per requirements, using Async SQLAlchemy
 # For local development, set DATABASE_URL=postgresql+asyncpg://user:password@localhost/dbname
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres",
+    "postgresql+asyncpg://postgres:postgres@localhost:5432/ilhop_db",
 )
 
 # If Railway provides a URL starting with postgresql://, convert it for asyncpg
