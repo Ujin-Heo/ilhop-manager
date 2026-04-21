@@ -27,15 +27,12 @@ async def get_tables(
 ):
     """
     모든 테이블의 위치(grid) 정보와 이용 가능 여부를 반환합니다.
-    만약 테이블에 활성화된(isActive=true) 손님이 있다면 해당 손님의 정보(입장 시각 등)를 포함합니다.
+    만약 테이블에 활성화된(`isActive=true`) 손님이 있다면 해당 손님의 정보(입장 시각 등)를 포함합니다.
     """
     try:
-        # 비즈니스 로직 및 CRUD 작업
-        # DB에서 테이블 정보 읽어오기
         tables: list[Table] = await get_tables_from_db(db)
 
-        # 결과 반환
-        # Pydantic이 list[TableStatus] 형식으로 자동 변환
+        # 결과 반환: Pydantic이 list[TableStatus] 형식으로 자동 변환
         return tables
 
     except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 음수 데이터)
