@@ -5,9 +5,12 @@ from typing import Literal
 from pydantic import BaseModel, Field
 from .rest_schemas import OrderDetail
 
+from typing import Annotated
+
 
 class WSBasePayload(BaseModel):
     """Base class for WebSocket message payloads."""
+
     event: str
 
 
@@ -17,9 +20,9 @@ class OrderCreatedPayload(WSBasePayload):
 
 
 class ItemServedUpdatedData(BaseModel):
-    orderId: UUID = Field(..., description="대상 주문의 UUID")
-    menuName: str = Field(..., description="대상 메뉴 이름")
-    isServed: bool = Field(..., description="서빙 완료 여부")
+    orderId: Annotated[UUID, Field(description="대상 주문의 UUID")]
+    menuName: Annotated[str, Field(description="대상 메뉴 이름")]
+    isServed: Annotated[bool, Field(description="서빙 완료 여부")]
 
 
 class ItemServedUpdatedPayload(WSBasePayload):
@@ -28,8 +31,8 @@ class ItemServedUpdatedPayload(WSBasePayload):
 
 
 class PaymentConfirmedData(BaseModel):
-    orderId: UUID = Field(..., description="결제 완료된 주문의 UUID")
-    isPaid: bool = Field(..., description="입금 확인 여부")
+    orderId: Annotated[UUID, Field(description="결제 완료된 주문의 UUID")]
+    isPaid: Annotated[bool, Field(description="입금 확인 여부")]
 
 
 class PaymentConfirmedPayload(WSBasePayload):
@@ -49,7 +52,7 @@ class Info(BaseModel):
 
 
 class ChannelReference(BaseModel):
-    ref: str = Field(..., alias="$ref")
+    ref: Annotated[str, Field(alias="$ref")]
 
 
 class Operation(BaseModel):

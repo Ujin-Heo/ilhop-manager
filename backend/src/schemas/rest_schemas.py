@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from typing import Annotated
 from uuid import UUID
 
 from pydantic import (
@@ -12,8 +13,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    conint,
-    constr,
     model_validator,
 )
 from pydantic.alias_generators import to_camel
@@ -28,40 +27,47 @@ class BaseSchema(BaseModel):
 
 
 class TableCreateRequest(BaseSchema):
-    table_num: int = Field(..., description="손님에게 보일 테이블 번호", examples=[15])
-    grid_row: int = Field(
-        ..., description="매장 그리드 상의 가로 행 위치", examples=[3]
-    )
-    grid_col: int = Field(
-        ..., description="매장 그리드 상의 세로 열 위치", examples=[5]
-    )
-    is_available: bool | None = Field(
-        True, description="즉시 사용 가능 여부 (기본값 true)", examples=[True]
-    )
+    table_num: Annotated[
+        int, Field(description="손님에게 보일 테이블 번호", examples=[15])
+    ]
+    grid_row: Annotated[
+        int, Field(description="매장 그리드 상의 가로 행 위치", examples=[3])
+    ]
+    grid_col: Annotated[
+        int, Field(description="매장 그리드 상의 세로 열 위치", examples=[5])
+    ]
+    is_available: Annotated[
+        bool | None,
+        Field(description="즉시 사용 가능 여부 (기본값 true)", examples=[True]),
+    ] = True
 
 
 class TableUpdateRequest(BaseSchema):
-    table_num: int | None = Field(
-        None, description="변경할 새로운 테이블 번호", examples=[12]
-    )
-    is_available: bool | None = Field(
-        None, description="테이블 사용 가능 여부 상태", examples=[False]
-    )
+    table_num: Annotated[
+        int | None, Field(description="변경할 새로운 테이블 번호", examples=[12])
+    ] = None
+    is_available: Annotated[
+        bool | None, Field(description="테이블 사용 가능 여부 상태", examples=[False])
+    ] = None
 
 
 class TableStatus(BaseSchema):
-    table_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
-    table_num: int = Field(..., description="손님에게 보이는 테이블 번호", examples=[7])
-    grid_row: int = Field(..., description="그리드 상의 세로 위치", examples=[2])
-    grid_col: int = Field(..., description="그리드 상의 가로 위치", examples=[3])
-    is_available: bool = Field(
-        ...,
-        description="테이블 사용 가능 여부 (한 손님이 두 테이블 사용 등)",
-        examples=[True],
-    )
-    current_customer: CustomerBrief | None = Field(
-        None, description="현재 해당 테이블을 사용하고 있는 손님"
-    )
+    table_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])]
+    table_num: Annotated[
+        int, Field(description="손님에게 보이는 테이블 번호", examples=[7])
+    ]
+    grid_row: Annotated[int, Field(description="그리드 상의 세로 위치", examples=[2])]
+    grid_col: Annotated[int, Field(description="그리드 상의 가로 위치", examples=[3])]
+    is_available: Annotated[
+        bool,
+        Field(
+            description="테이블 사용 가능 여부 (한 손님이 두 테이블 사용 등)",
+            examples=[True],
+        ),
+    ]
+    current_customer: Annotated[
+        CustomerBrief | None, Field(description="현재 해당 테이블을 사용하고 있는 손님")
+    ] = None
 
     @model_validator(mode="before")
     @classmethod
@@ -72,131 +78,148 @@ class TableStatus(BaseSchema):
 
 
 class CustomerCreateRequest(BaseSchema):
-    table_num: int = Field(..., description="손님이 착석한 테이블 번호", examples=[7])
+    table_num: Annotated[int, Field(description="손님이 착석한 테이블 번호", examples=[7])]
 
 
 class CustomerBrief(BaseSchema):
-    customer_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
-    entry_time: AwareDatetime = Field(
-        ...,
-        description="입장 시각 (프론트엔드에서 경과 시간 계산용)",
-        examples=["2024-04-12T18:25:30Z"],
-    )
-    is_active: bool = Field(..., examples=[True])
+    customer_id: Annotated[
+        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
+    ]
+    entry_time: Annotated[
+        AwareDatetime,
+        Field(
+            description="입장 시각 (프론트엔드에서 경과 시간 계산용)",
+            examples=["2024-04-12T18:25:30Z"],
+        ),
+    ]
+    is_active: Annotated[bool, Field(examples=[True])]
 
 
 class MenuCreateRequest(BaseSchema):
-    menu_name: str = Field(
-        ..., description="음식 또는 음료 이름", examples=["치킨 가라아게"]
-    )
-    price: int = Field(..., description="판매 가격 (원 단위)")
-    image_url: AnyUrl | None = Field(
-        None,
-        description="메뉴 사진 경로",
-        examples=["https://example.com/images/chicken.jpg"],
-    )
-    options: list[str] | None = Field(
-        None,
-        description="선택 가능한 옵션 (맛, 사이즈 등)",
-        examples=[["살구맛", "청포도맛", "레몬맛"]],
-    )
+    menu_name: Annotated[
+        str, Field(description="음식 또는 음료 이름", examples=["치킨 가라아게"])
+    ]
+    price: Annotated[int, Field(description="판매 가격 (원 단위)")]
+    image_url: Annotated[
+        AnyUrl | None,
+        Field(
+            description="메뉴 사진 경로",
+            examples=["https://example.com/images/chicken.jpg"],
+        ),
+    ] = None
+    options: Annotated[
+        list[str] | None,
+        Field(
+            description="선택 가능한 옵션 (맛, 사이즈 등)",
+            examples=[["살구맛", "청포도맛", "레몬맛"]],
+        ),
+    ] = None
 
 
 class Menu(BaseSchema):
-    menu_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440001"])
-    menu_name: str = Field(
-        ..., description="음식 또는 음료 이름", examples=["치킨 가라아게"]
-    )
-    price: int = Field(..., description="판매 가격 (원 단위)", examples=[15000])
-    image_url: AnyUrl | None = Field(
-        None,
-        description="메뉴 사진 경로",
-        examples=["https://example.com/images/chicken.jpg"],
-    )
-    options: list[str] | None = Field(
-        None,
-        description="선택 가능한 옵션 (맛, 사이즈 등)",
-        examples=[["살구맛", "청포도맛", "레몬맛"]],
-    )
+    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    menu_name: Annotated[
+        str, Field(description="음식 또는 음료 이름", examples=["치킨 가라아게"])
+    ]
+    price: Annotated[int, Field(description="판매 가격 (원 단위)", examples=[15000])]
+    image_url: Annotated[
+        AnyUrl | None,
+        Field(
+            description="메뉴 사진 경로",
+            examples=["https://example.com/images/chicken.jpg"],
+        ),
+    ] = None
+    options: Annotated[
+        list[str] | None,
+        Field(
+            description="선택 가능한 옵션 (맛, 사이즈 등)",
+            examples=[["살구맛", "청포도맛", "레몬맛"]],
+        ),
+    ] = None
 
 
 class OrderCreateRequest(BaseSchema):
-    customer_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440005"])
-    total_price: int = Field(..., examples=[25000])
-    depositor: str | None = Field(
-        None, description="입금자명 (현금 입금 확인용)", examples=["홍길동"]
-    )
+    customer_id: Annotated[
+        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440005"])
+    ]
+    total_price: Annotated[int, Field(examples=[25000])]
+    depositor: Annotated[
+        str | None, Field(description="입금자명 (현금 입금 확인용)", examples=["홍길동"])
+    ] = None
     items: list[OrderItemRequest]
 
 
 class OrderDetail(BaseSchema):
-    order_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440002"])
-    table_num: int = Field(..., examples=[7])
-    customer_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440000"])
-    order_time: AwareDatetime = Field(..., examples=["2024-04-12T19:00:00Z"])
-    total_price: int = Field(..., examples=[30000])
-    depositor: str | None = Field(None, examples=["홍길동"])
-    is_paid: bool = Field(..., examples=[False])
-    memo: str | None = Field(None, examples=["현금 결제 완료"])
+    order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
+    table_num: Annotated[int, Field(examples=[7])]
+    customer_id: Annotated[
+        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
+    ]
+    order_time: Annotated[AwareDatetime, Field(examples=["2024-04-12T19:00:00Z"])]
+    total_price: Annotated[int, Field(examples=[30000])]
+    depositor: Annotated[str | None, Field(examples=["홍길동"])] = None
+    is_paid: Annotated[bool, Field(examples=[False])]
+    memo: Annotated[str | None, Field(examples=["현금 결제 완료"])] = None
     items: list[OrderItemBrief] | None = None
 
 
 class OrderSummaryResponse(BaseSchema):
-    total_amount: int = Field(
-        ..., description="해당 테이블의 전체 결제 금액 합계", examples=[25000]
-    )
+    total_amount: Annotated[
+        int, Field(description="해당 테이블의 전체 결제 금액 합계", examples=[25000])
+    ]
     order_items: list[OrderItem]
 
 
 class OrderPaymentUpdateRequest(BaseSchema):
-    is_paid: bool = Field(
-        ..., description="변경할 결제 상태 (수동 승인 시 true)", examples=[True]
-    )
+    is_paid: Annotated[
+        bool, Field(description="변경할 결제 상태 (수동 승인 시 true)", examples=[True])
+    ]
 
 
 class OrderMemoUpdateRequest(BaseSchema):
-    memo: constr(max_length=255) = Field(
-        ...,
-        description="작성할 메모 내용 (최대 255자)",
-        examples=["현금으로 50,000원 지불 확인됨"],
-    )
+    memo: Annotated[
+        str,
+        Field(
+            max_length=255,
+            description="작성할 메모 내용 (최대 255자)",
+            examples=["현금으로 50,000원 지불 확인됨"],
+        ),
+    ]
 
 
 class OrderItemRequest(BaseSchema):
-    menu_id: UUID = Field(..., examples=["550e8400-e29b-41d4-a716-446655440001"])
-    quantity: conint(ge=1) = Field(..., examples=[2])
-    price_at_order: int = Field(
-        ..., description="주문 시점의 메뉴 가격", examples=[8000]
-    )
-    selected_option: str | None = Field(None, examples=["살구맛"])
+    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    quantity: Annotated[int, Field(ge=1, examples=[2])]
+    price_at_order: Annotated[int, Field(description="주문 시점의 메뉴 가격", examples=[8000])]
+    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
 
 
 class OrderItemServedUpdateRequest(BaseSchema):
-    is_served: bool = Field(..., description="서빙 완료 여부", examples=[True])
+    is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
 
 
 class OrderItemBrief(BaseSchema):
-    menu_name: str = Field(..., examples=["치킨 가라아게"])
-    quantity: conint(ge=1) = Field(..., examples=[2])
-    selected_option: str | None = Field(None, examples=["살구맛"])
-    is_served: bool = Field(..., examples=[False])
+    menu_name: Annotated[str, Field(examples=["치킨 가라아게"])]
+    quantity: Annotated[int, Field(ge=1, examples=[2])]
+    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
+    is_served: Annotated[bool, Field(examples=[False])]
 
 
 class OrderItem(BaseSchema):
-    menu_name: str = Field(..., examples=["좋은토닉"])
-    total_quantity: int = Field(
-        ..., description="메뉴+옵션 조합의 합계 수량", examples=[2]
-    )
-    unit_price: int = Field(..., examples=[5000])
-    selected_option: str | None = Field(
-        None, description="선택된 옵션명 (없으면 null)", examples=["살구맛"]
-    )
+    menu_name: Annotated[str, Field(examples=["좋은토닉"])]
+    total_quantity: Annotated[
+        int, Field(description="메뉴+옵션 조합의 합계 수량", examples=[2])
+    ]
+    unit_price: Annotated[int, Field(examples=[5000])]
+    selected_option: Annotated[
+        str | None, Field(description="선택된 옵션명 (없으면 null)", examples=["살구맛"])
+    ] = None
 
 
 class PaymentConfirmInfo(BaseSchema):
-    title: str | None = Field(None, description="알림 제목")
-    message: str | None = Field(None, description="알림 본문")
-    app: str | None = Field(None, description="알림 보낸 앱")
+    title: Annotated[str | None, Field(description="알림 제목")] = None
+    message: Annotated[str | None, Field(description="알림 본문")] = None
+    app: Annotated[str | None, Field(description="알림 보낸 앱")] = None
 
 
 class Error(BaseSchema):

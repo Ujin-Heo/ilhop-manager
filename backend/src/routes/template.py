@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db
@@ -7,6 +7,8 @@ from ..schemas.rest_schemas import (
     ExampleRequestBody,
     ExampleResponseBody,
 )
+
+from typing import Annotated
 
 router = APIRouter()
 
@@ -22,7 +24,8 @@ router = APIRouter()
 async def template_endpoint(
     path_parameter: str,  # Path Parameter
     request_data: ExampleRequestBody,  # Request Body (Pydantic)
-    query_parameter: str | None = None,  # Query Parameter
+    # Query Parameter
+    query_parameter: Annotated[str | None, Query(alias="queryParameter")] = None,
     db: AsyncSession = Depends(get_db),  # DB Session Injection
 ):
     """
