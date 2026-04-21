@@ -110,6 +110,13 @@ async def update_table(
         updated_table: Table = await update_table_in_db(db, table_id, request_data)
         return updated_table
 
+    except IntegrityError as ie:
+        # DB 제약 조건 위반 (중복 번호) 시 발생
+        await db.rollback()  # 에러 발생 시 세션을 되돌립니다.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"[❌ 데이터 충돌] 이미 해당 번호의 테이블이 있습니다. {str(ie)}",
+        )
     except ValueError as ve:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
