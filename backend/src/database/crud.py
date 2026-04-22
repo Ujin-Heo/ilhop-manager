@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import Row, select, func
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -10,6 +10,8 @@ from ..schemas.rest_schemas import (
     OrderItem,
     OrderSummaryResponse,
     MenuCreateRequest,
+    OrderDetail,
+    OrderCreateRequest,
 )
 
 
@@ -251,7 +253,9 @@ async def add_new_menu_to_db(db: AsyncSession, request_data: MenuCreateRequest) 
 
 
 # ========= Order 관련 로직 ===========================================
-async def get_orders_from_db(db: AsyncSession, is_paid: bool | None) -> list[Order]:
+async def get_orders_from_db(
+    db: AsyncSession, is_paid: bool | None
+) -> list[OrderDetail]:
     """
     SELECT o.order_id, (orders 안의 나머지 칼럼들), t.table_num
     FROM orders o
@@ -269,6 +273,60 @@ async def get_orders_from_db(db: AsyncSession, is_paid: bool | None) -> list[Ord
         stmt = stmt.where(Order.is_paid == is_paid)
 
     result = await db.execute(stmt)
-    orders = result.scalars().all()
+    rows: list[Row] = result.all()
 
-    return orders
+    order_details = []
+    for row in rows:
+        order_obj: Order = row.Order
+        t_num = row.table_num
+
+        order_detail = OrderDetail(
+            order_id=order_obj.order_id,
+            table_num=t_num,  # DB에서 가져온 table_num 주입!
+            customer_id=order_obj.customer_id,
+            order_time=order_obj.order_time,
+            total_price=order_obj.total_price,
+            depositor=order_obj.depositor,
+            is_paid=order_obj.is_paid,
+            memo=order_obj.memo,
+            items=order_obj.items,  # selectinload 덕분에 이미 들어있음
+        )
+        # **order_obj.__dict__ 보다 일일이 나열하는 게 디버깅이 편함.
+        order_details.append(order_detail)
+
+    return order_details
+
+
+async def add_new_order_to_db(
+    db: AsyncSession, request_data: OrderCreateRequest
+) -> Order:
+    # 1. Order 객체 생성
+    new_order = Order(
+        customer_id=request_data.customer_id,
+        total_price=request_data.total_price,
+        depositor=request_data.depositor,
+        # items 리스트에 직접 OrderItem 객체들을 담아줍니다.
+        # 이렇게 하면 SQLAlchemy가 flush/commit 시점에 자동으로 order_id를 채워줍니다.
+        items=[OrderItem(**item.model_dump()) for item in request_data.items],
+    )
+
+    # 2. 부모 객체만 추가 (자식인 items는 관계 설정 덕분에 같이 추가됨)
+    db.add(new_order)
+
+    # 3. 새로운 주문을 DB에 저장 (여기서 실제로 INSERT 쿼리가 날아감)
+    await db.commit()
+
+    # 4. DB에서 생성된 order_id, order_time 등을 가져오기 위해 new_order을 새로고침함
+    # models.py에서 Order의 items를 lazy="selectin"으로 설정하고
+    # await db.refresh(new_order) 한 줄로 해결하는 방법도 있지만,
+    # eager loading으로 new_order에 딸린 items까지 같이 불러온다는 걸
+    # 명시적으로 보여주기 위해 아래와 같이 씀.
+    stmt = (
+        select(Order)
+        .options(selectinload(Order.items))
+        .where(Order.order_id == new_order.order_id)
+    )
+    result = await db.execute(stmt)
+    new_order = result.scalar_one()
+
+    return new_order

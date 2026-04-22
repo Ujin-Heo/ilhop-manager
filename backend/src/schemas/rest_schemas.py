@@ -78,7 +78,9 @@ class TableStatus(BaseSchema):
 
 
 class CustomerCreateRequest(BaseSchema):
-    table_num: Annotated[int, Field(description="손님이 착석한 테이블 번호", examples=[7])]
+    table_num: Annotated[
+        int, Field(description="손님이 착석한 테이블 번호", examples=[7])
+    ]
 
 
 class CustomerBrief(BaseSchema):
@@ -144,9 +146,25 @@ class OrderCreateRequest(BaseSchema):
     ]
     total_price: Annotated[int, Field(examples=[25000])]
     depositor: Annotated[
-        str | None, Field(description="입금자명 (현금 입금 확인용)", examples=["홍길동"])
+        str | None,
+        Field(description="입금자명 (현금 입금 확인용)", examples=["홍길동"]),
     ] = None
     items: list[OrderItemRequest]
+
+
+class OrderCreateResponse(BaseSchema):
+    """POST /orders 전용 응답 스키마 (table_num 없음)"""
+
+    order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
+    customer_id: Annotated[
+        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
+    ]
+    order_time: Annotated[AwareDatetime, Field(examples=["2024-04-12T19:00:00Z"])]
+    total_price: Annotated[int, Field(examples=[30000])]
+    depositor: Annotated[str | None, Field(examples=["홍길동"])] = None
+    is_paid: Annotated[bool, Field(examples=[False])]
+    memo: Annotated[str | None, Field(examples=["현금 결제 완료"])] = None
+    items: list[OrderItemBrief] | None = None
 
 
 class OrderDetail(BaseSchema):
@@ -190,7 +208,9 @@ class OrderMemoUpdateRequest(BaseSchema):
 class OrderItemRequest(BaseSchema):
     menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
     quantity: Annotated[int, Field(ge=1, examples=[2])]
-    price_at_order: Annotated[int, Field(description="주문 시점의 메뉴 가격", examples=[8000])]
+    price_at_order: Annotated[
+        int, Field(description="주문 시점의 메뉴 가격", examples=[8000])
+    ]
     selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
 
 
@@ -212,7 +232,8 @@ class OrderItem(BaseSchema):
     ]
     unit_price: Annotated[int, Field(examples=[5000])]
     selected_option: Annotated[
-        str | None, Field(description="선택된 옵션명 (없으면 null)", examples=["살구맛"])
+        str | None,
+        Field(description="선택된 옵션명 (없으면 null)", examples=["살구맛"]),
     ] = None
 
 
