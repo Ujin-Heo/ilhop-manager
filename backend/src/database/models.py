@@ -68,9 +68,7 @@ class Table(Base):
     is_available: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationshps
-    customers: Mapped[list["Customer"]] = relationship(
-        back_populates="table", lazy="selectin"
-    )
+    customers: Mapped[list["Customer"]] = relationship(back_populates="table")
 
 
 class Customer(Base):

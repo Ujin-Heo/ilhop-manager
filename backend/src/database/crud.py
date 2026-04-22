@@ -248,3 +248,27 @@ async def add_new_menu_to_db(db: AsyncSession, request_data: MenuCreateRequest) 
     await db.refresh(new_menu)
 
     return new_menu
+
+
+# ========= Order 관련 로직 ===========================================
+async def get_orders_from_db(db: AsyncSession, is_paid: bool | None) -> list[Order]:
+    """
+    SELECT o.order_id, (orders 안의 나머지 칼럼들), t.table_num
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.customer_id
+    JOIN tables t ON c.table_id = t.table_id
+    """
+    stmt = (
+        select(Order, Table.table_num)
+        .join(Order.customer)
+        .join(Customer.table)
+        .options(selectinload(Order.items))
+    )
+
+    if is_paid is not None:
+        stmt = stmt.where(Order.is_paid == is_paid)
+
+    result = await db.execute(stmt)
+    orders = result.scalars().all()
+
+    return orders

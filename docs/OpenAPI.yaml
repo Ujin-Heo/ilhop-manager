@@ -393,7 +393,7 @@ paths:
       description: |
         시스템의 모든 주문 내역을 개별 건별로 조회합니다. 
         캐셔가 입금자명과 금액을 대조하여 `isPaid`를 업데이트하기 위한 용도로 사용됩니다.
-      operationId: getAllOrders
+      operationId: getOrders
       parameters:
         - name: isPaid
           in: query
