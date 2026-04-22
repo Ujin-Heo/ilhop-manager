@@ -3,8 +3,16 @@ from sqlalchemy.exc import IntegrityError, MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db, Customer
-from ..database.crud import get_customers_from_db, add_new_customer_to_db
-from ..schemas.rest_schemas import CustomerBrief, CustomerCreateRequest
+from ..database.crud import (
+    get_customers_from_db,
+    add_new_customer_to_db,
+    get_customer_order_summary_from_db,
+)
+from ..schemas.rest_schemas import (
+    CustomerBrief,
+    CustomerCreateRequest,
+    OrderSummaryResponse,
+)
 
 from typing import Annotated
 
@@ -80,6 +88,48 @@ async def create_customer(
             detail=f"[❌ 헤당 데이터를 찾을 수 없음] {str(nrfe)}",
         )
     except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.get(
+    "/customers/{customer_id}/order-summary",
+    operation_id="get_customer_order_summary",
+    response_model=OrderSummaryResponse,  # Response Body (Pydantic)
+    status_code=status.HTTP_200_OK,
+    tags=["customer"],
+    summary="특정 고객의 결제 완료 주문 내역 조회",
+)
+async def get_customer_order_summary(
+    customer_id: str,  # Path Parameter
+    is_paid: Annotated[bool | None, Query(alias="isPaid")] = None,
+    db: AsyncSession = Depends(get_db),  # DB Session Injection
+):
+    """
+    특정 고객 ID를 필터로 사용하여 해당 고객이 주문한 내역 중 결제 승인(`isPaid=true`)이 완료된 항목들만 가져옵니다.\n
+    동일한 메뉴에 대한 주문 내역은 수량을 합산하여 하나로 묶어서 가져옵니다.\n
+    주문 페이지의 '주문 내역' 탭에서 사용됩니다.
+    """
+    try:
+
+        order_summary: OrderSummaryResponse = await get_customer_order_summary_from_db(
+            db, customer_id, is_paid
+        )
+        return order_summary
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 헤당 데이터를 찾을 수 없음] {str(nrfe)}",
+        )
+    except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 음수 데이터)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"[❌ 잘못된 요청] {str(ve)}",
+        )
+    except Exception as e:  # 서버 내부 에러
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"[⚠️ 서버 오류] {str(e)}",

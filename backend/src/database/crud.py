@@ -1,4 +1,4 @@
-from sqlalchemy import select, delete
+from sqlalchemy import select, func
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -7,6 +7,8 @@ from ..schemas.rest_schemas import (
     TableCreateRequest,
     TableUpdateRequest,
     CustomerCreateRequest,
+    OrderItem,
+    OrderSummaryResponse,
 )
 
 
@@ -155,3 +157,75 @@ async def add_new_customer_to_db(
     await db.refresh(new_customer)
 
     return new_customer
+
+
+async def get_customer_order_summary_from_db(
+    db: AsyncSession, customer_id: str, is_paid: bool | None
+) -> OrderSummaryResponse:
+    """
+    해당 id를 가진 고객의 총 주문 금액 및 주문 내역을 가져옵니다.
+    같은 (메뉴명, 옵션명)을 가진 주문을 하나의 종류로 묶어서 반환합니다.
+    e.g.) (좋은 토닉, 살구맛)과 (좋은 토닉, 요거트맛)은 다른 종류로 취급됩니다.
+    """
+
+    # 1. 고객 존재 여부 먼저 확인 (PK 조회는 매우 빠릅니다)
+    customer_exists = await db.get(Customer, customer_id)
+
+    if not customer_exists:
+        # 고객 자체가 없으면 NoResultFound를 던져서 404를 유도
+        raise NoResultFound(
+            f"요청한 아이디({customer_id})를 가진 손님이 존재하지 않습니다."
+        )
+
+    # 2. 고객은 존재하므로 주문 내역 집계 실행
+    """
+    SELECT
+        m.menu_name,
+        SUM(oi.quantity) as total_quantity,
+        MAX(oi.price_at_order) as unit_price,
+        oi.selected_option
+    FROM orders o
+    JOIN order_items oi ON o.order_id = oi.order_id
+    JOIN menus m ON oi.menu_id = m.menu_id
+    WHERE o.customer_id = '...' AND o.payment_status = true
+    GROUP BY m.menu_name, oi.selected_option;
+    """
+    stmt = (
+        select(
+            Menu.menu_name,
+            func.sum(OrderItem.quantity).label("total_quantity"),
+            func.max(OrderItem.price_at_order).label("unit_price"),
+            OrderItem.selected_option,
+        )
+        .join(OrderItem.menu)
+        .join(OrderItem.order)
+        .where(Order.customer_id == customer_id)
+    )
+
+    if is_paid is not None:
+        stmt = stmt.where(Order.is_paid == is_paid)
+
+    stmt = stmt.group_by(Menu.menu_name, OrderItem.selected_option)
+
+    result = await db.execute(stmt)
+
+    # total_quantity, unit_price 레이블을 사용하기 위해 mappings() 사용
+    rows = result.mappings().all()
+
+    order_items = []
+    total_amount = 0
+    for row in rows:
+        item = OrderItem(
+            menu_name=row["menu_name"],
+            total_quantity=row["total_quantity"],
+            unit_price=row["unit_price"],
+            selected_option=row["selected_option"],
+        )
+        order_items.append(item)
+        total_amount += row["total_quantity"] * row["unit_price"]
+
+    order_summary = OrderSummaryResponse(
+        total_amount=total_amount, order_items=order_items
+    )
+
+    return order_summary
