@@ -1,8 +1,13 @@
 from sqlalchemy import select, delete
+from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from .models import Table, Customer, Menu, Order, OrderItem
-from ..schemas.rest_schemas import TableCreateRequest, TableUpdateRequest
+from ..schemas.rest_schemas import (
+    TableCreateRequest,
+    TableUpdateRequest,
+    CustomerCreateRequest,
+)
 
 
 # ========= Table 관련 로직 ===========================================
@@ -115,6 +120,38 @@ async def get_customers_from_db(
         stmt = stmt.where(Customer.is_active == is_active)
 
     result = await db.execute(stmt)
-    Customers = result.scalars().one_or_none()
+    customers = result.scalars().one_or_none()
 
-    return Customers
+    if customers is None:
+        raise NoResultFound(
+            f"{table_num} 테이블에 있는 is_active==True인 손님이 없습니다."
+        )
+
+    return customers
+
+
+async def add_new_customer_to_db(
+    db: AsyncSession, request_data: CustomerCreateRequest
+) -> Customer:
+    """
+    request_data를 바탕으로 새로운 Customer 객체를 만들어 DB에 삽입합니다.\n
+    새로 생성한 Customer 객체를 반환합니다.
+    """
+
+    # request_data 안의 테이블 번호를 가진 테이블의 id 가져오기
+    stmt = select(Table.table_id).where(Table.table_num == request_data.table_num)
+    result = await db.execute(stmt)
+    table_id = result.scalar_one_or_none()
+
+    if table_id is None:
+        raise NoResultFound(
+            f"테이블 번호가 {request_data.table_num}인 테이블을 찾을 수 없습니다."
+        )
+
+    new_customer = Customer(table_id=table_id)
+    db.add(new_customer)
+
+    await db.commit()
+    await db.refresh(new_customer)
+
+    return new_customer

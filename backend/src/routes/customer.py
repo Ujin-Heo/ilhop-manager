@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError, MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db, Customer
-from ..database.crud import get_customers_from_db
+from ..database.crud import get_customers_from_db, add_new_customer_to_db
 from ..schemas.rest_schemas import CustomerBrief, CustomerCreateRequest
 
 from typing import Annotated
@@ -47,6 +47,39 @@ async def get_customers(
             detail=f"[❌ 해당 데이터를 찾을 수 없음] {str(nrfe)}",
         )
     except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.post(
+    "/customers",
+    operation_id="create_customer",
+    response_model=CustomerBrief,  # Response Body (Pydantic)
+    status_code=status.HTTP_201_CREATED,
+    tags=["customer"],
+    summary="새 손님 입장(테이블 점유)",
+)
+async def create_customer(
+    request_data: CustomerCreateRequest,  # Request Body (Pydantic)
+    db: AsyncSession = Depends(get_db),  # DB Session Injection
+):
+    """
+    특정 테이블에 새로운 손님 세션을 생성합니다.\n
+    백엔드에서 해당 테이블의 table_id를 조회하고, 현재 시각을 entry_time으로 설정하여\n
+    isActive: true 상태의 고객 레코드를 생성합니다.
+    """
+    try:
+        new_customer: Customer = await add_new_customer_to_db(db, request_data)
+        return new_customer
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 헤당 데이터를 찾을 수 없음] {str(nrfe)}",
+        )
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"[⚠️ 서버 오류] {str(e)}",
