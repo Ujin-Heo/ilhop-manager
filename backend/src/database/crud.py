@@ -9,6 +9,7 @@ from ..schemas.rest_schemas import (
     CustomerCreateRequest,
     OrderItem,
     OrderSummaryResponse,
+    MenuCreateRequest,
 )
 
 
@@ -229,3 +230,21 @@ async def get_customer_order_summary_from_db(
     )
 
     return order_summary
+
+
+# ========= Menu 관련 로직 ===========================================
+async def get_menus_from_db(db: AsyncSession) -> list[Menu]:
+    stmt = select(Menu)
+    result = await db.execute(stmt)
+    menus = result.scalars().all()
+
+    return menus
+
+
+async def add_new_menu_to_db(db: AsyncSession, request_data: MenuCreateRequest) -> Menu:
+    new_menu = Menu(**request_data.model_dump())
+    db.add(new_menu)
+    await db.commit()
+    await db.refresh(new_menu)
+
+    return new_menu
