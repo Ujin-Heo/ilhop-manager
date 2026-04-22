@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import table
+from .routes import table, customer
 
 app = FastAPI()
 
@@ -15,3 +15,4 @@ app.add_middleware(
 
 
 app.include_router(table.router)
+app.include_router(customer.router)

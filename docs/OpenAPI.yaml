@@ -217,7 +217,7 @@ paths:
       summary: "조건에 맞는 고객 목록 조회"
       description: |
         테이블 번호나 활성화 여부 등의 조건을 필터로 사용하여 고객 정보를 조회합니다.
-        주문 웹페이지 접속 시 `tableNum={n}&active=true` 파라미터를 사용하여 
+        주문 웹페이지 접속 시 `tableNum={n}&isActive=true` 파라미터를 사용하여 
         현재 해당 테이블을 이용 중인 고객 1명의 정보를 가져오는 데 주로 사용됩니다.
       operationId: getCustomers
       parameters:
@@ -228,7 +228,7 @@ paths:
           schema:
             type: integer
             example: 7
-        - name: active
+        - name: isActive
           in: query
           description: "활성화(이용 중) 여부 필터"
           required: false

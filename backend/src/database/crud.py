@@ -94,3 +94,27 @@ async def delete_table_from_db(db: AsyncSession, table_id: str) -> None:
 
     # 3. 수정 내용 반영
     await db.commit()
+
+
+# ========= Customer 관련 로직 ===========================================
+
+
+async def get_customers_from_db(
+    db: AsyncSession, table_num: int | None, is_active: bool | None
+) -> list[Customer]:
+    """
+    특정 테이블의 활성 고객 1명만 가져옵니다.
+    만약 결과가 2개 이상이면 MultipleResultsFound 에러가 발생합니다.
+    """
+    stmt = select(Customer)
+
+    if table_num is not None:
+        stmt = stmt.join(Table).where(Table.table_num == table_num)
+
+    if is_active is not None:
+        stmt = stmt.where(Customer.is_active == is_active)
+
+    result = await db.execute(stmt)
+    Customers = result.scalars().one_or_none()
+
+    return Customers
