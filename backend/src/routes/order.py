@@ -9,12 +9,13 @@ from ..database.crud import (
     update_order_data_in_db,
 )
 from ..schemas.rest_schemas import (
-    OrderBrief,
     OrderDetail,
     OrderCreateRequest,
     OrderCreateResponse,
     OrderPaymentUpdateRequest,
+    OrderPaymentUpdateResponse,
     OrderMemoUpdateRequest,
+    OrderMemoUpdateResponse,
 )
 
 from typing import Annotated
@@ -99,7 +100,7 @@ async def create_order(
 @router.patch(
     "/orders/{order_id}/payment",
     operation_id="update_order_is_paid",
-    response_model=OrderBrief,  # Response Body (Pydantic)
+    response_model=OrderPaymentUpdateResponse,  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,
     tags=["order"],
     summary="주문 결제 상태 수동 업데이트",
@@ -144,7 +145,7 @@ async def update_order_is_paid(
 @router.patch(
     "/orders/{order_id}/memo",
     operation_id="update_order_memo",
-    response_model=OrderBrief,  # Response Body (Pydantic)
+    response_model=OrderMemoUpdateResponse,  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,
     tags=["order"],
     summary="주문 비고(메모) 업데이트",

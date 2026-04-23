@@ -4,7 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db, OrderItem
 from ..database.crud import update_order_item_data_in_db
-from ..schemas.rest_schemas import OrderItemBrief, OrderItemServedUpdateRequest
+from ..schemas.rest_schemas import (
+    OrderItemServedUpdateRequest,
+    OrderItemServedUpdateResponse,
+)
 
 from typing import Annotated
 
@@ -14,7 +17,7 @@ router = APIRouter()
 @router.patch(
     "/order-items/{order_id}/{memu_id}",
     operation_id="update_order_item_served_status",
-    response_model=OrderItemBrief,  # Response Body (Pydantic)
+    response_model=OrderItemServedUpdateResponse,  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,
     tags=["order item"],
     summary="특정 주문 항목의 서빙 상태 업데이트",

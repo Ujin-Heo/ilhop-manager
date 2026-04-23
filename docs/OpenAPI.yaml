@@ -476,7 +476,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderBrief'
+                $ref: '#/components/schemas/OrderPaymentUpdateResponse'
         '404':
           description: "존재하지 않는 주문 ID"
         default:
@@ -516,7 +516,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderBrief'
+                $ref: '#/components/schemas/OrderMemoUpdateResponse'
         '404':
           description: "해당 주문을 찾을 수 없음"
         default:
@@ -571,7 +571,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderItemBrief'
+                $ref: '#/components/schemas/OrderItemServedUpdateResponse'
         '400':
           description: "잘못된 요청 파라미터"
         '404':
@@ -833,19 +833,7 @@ components:
       required:
         - isPaid
 
-    OrderMemoUpdateRequest:
-      type: object
-      properties:
-        memo:
-          type: string
-          maxLength: 255
-          nullable: true
-          description: "작성할 메모 내용 (최대 255자)"
-          example: "현금으로 50,000원 지불 확인됨"
-      required:
-        - memo
-
-    OrderBrief:
+    OrderPaymentUpdateResponse:
       type: object
       properties:
         orderId:
@@ -856,10 +844,35 @@ components:
           type: boolean
           default: false
           example: false
+      required:
+        - orderId
+        - isPaid
+
+    OrderMemoUpdateRequest:
+      type: object
+      properties:
         memo:
           type: string
-          nullable: true
+          maxLength: 255
+          nullable: false
+          description: "작성할 메모 내용 (최대 255자)"
+          example: "현금으로 50,000원 지불 확인됨"
+      required:
+        - memo
+
+    OrderMemoUpdateResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        memo:
+          type: string
           example: "현금 결제 완료"
+      required:
+        - orderId
+        - memo
 
     OrderDetail:
       type: object
@@ -954,6 +967,30 @@ components:
           description: "서빙 완료 여부"
           example: true
       required:
+        - isServed
+
+    OrderItemServedUpdateResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        menuId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        selectedOption:
+          type: string
+          nullable: true
+          example: "살구맛"
+        isServed:
+          type: boolean
+          description: "서빙 완료 여부"
+          example: true
+      required:
+        - orderId
+        - menuId
         - isServed
 
     OrderItemBrief:

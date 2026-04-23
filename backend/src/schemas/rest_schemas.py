@@ -168,6 +168,11 @@ class OrderPaymentUpdateRequest(BaseSchema):
     ]
 
 
+class OrderPaymentUpdateResponse(BaseSchema):
+    order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
+    is_paid: Annotated[bool, Field(examples=[False])]
+
+
 class OrderMemoUpdateRequest(BaseSchema):
     memo: Annotated[
         str,
@@ -179,10 +184,9 @@ class OrderMemoUpdateRequest(BaseSchema):
     ]
 
 
-class OrderBrief(BaseSchema):
+class OrderMemoUpdateResponse(BaseSchema):
     order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
-    is_paid: Annotated[bool | None, Field(examples=[False])] = None
-    memo: Annotated[str | None, Field(examples=["현금 결제 완료"])] = None
+    memo: Annotated[str, Field(examples=["현금 결제 완료"])]
 
 
 class OrderDetail(BaseSchema):
@@ -218,6 +222,13 @@ class OrderItemRequest(BaseSchema):
 
 
 class OrderItemServedUpdateRequest(BaseSchema):
+    is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
+
+
+class OrderItemServedUpdateResponse(BaseSchema):
+    order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
+    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
     is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
 
 
