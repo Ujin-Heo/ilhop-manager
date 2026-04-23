@@ -118,7 +118,7 @@ class MenuCreateRequest(BaseSchema):
     ] = None
 
 
-class Menu(BaseSchema):
+class MenuResponse(BaseSchema):
     menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
     menu_name: Annotated[
         str, Field(description="음식 또는 음료 이름", examples=["치킨 가라아게"])
@@ -153,21 +153,41 @@ class OrderCreateRequest(BaseSchema):
 
 
 class OrderCreateResponse(BaseSchema):
-    """POST /orders 전용 응답 스키마 (table_num 없음)"""
+    """POST /orders 전용 응답 스키마 (손님에게 보여질 내용만 전송)"""
 
     order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
-    customer_id: Annotated[
-        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
-    ]
     order_time: Annotated[AwareDatetime, Field(examples=["2024-04-12T19:00:00Z"])]
     total_price: Annotated[int, Field(examples=[30000])]
     depositor: Annotated[str | None, Field(examples=["홍길동"])] = None
-    is_paid: Annotated[bool, Field(examples=[False])]
-    memo: Annotated[str | None, Field(examples=["현금 결제 완료"])] = None
     items: list[OrderItemBrief] | None = None
 
 
+class OrderPaymentUpdateRequest(BaseSchema):
+    is_paid: Annotated[
+        bool, Field(description="변경할 결제 상태 (수동 승인 시 true)", examples=[True])
+    ]
+
+
+class OrderMemoUpdateRequest(BaseSchema):
+    memo: Annotated[
+        str,
+        Field(
+            max_length=255,
+            description="작성할 메모 내용 (최대 255자)",
+            examples=["현금으로 50,000원 지불 확인됨"],
+        ),
+    ]
+
+
+class OrderBrief(BaseSchema):
+    order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
+    is_paid: Annotated[bool | None, Field(examples=[False])] = None
+    memo: Annotated[str | None, Field(examples=["현금 결제 완료"])] = None
+
+
 class OrderDetail(BaseSchema):
+    """ORM Orders 모델과 동일한데, table_num까지 추가"""
+
     order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
     table_num: Annotated[int, Field(examples=[7])]
     customer_id: Annotated[
@@ -186,23 +206,6 @@ class OrderSummaryResponse(BaseSchema):
         int, Field(description="해당 테이블의 전체 결제 금액 합계", examples=[25000])
     ]
     order_items: list[OrderItemSummaryResponse]
-
-
-class OrderPaymentUpdateRequest(BaseSchema):
-    is_paid: Annotated[
-        bool, Field(description="변경할 결제 상태 (수동 승인 시 true)", examples=[True])
-    ]
-
-
-class OrderMemoUpdateRequest(BaseSchema):
-    memo: Annotated[
-        str,
-        Field(
-            max_length=255,
-            description="작성할 메모 내용 (최대 255자)",
-            examples=["현금으로 50,000원 지불 확인됨"],
-        ),
-    ]
 
 
 class OrderItemRequest(BaseSchema):

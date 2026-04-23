@@ -7,7 +7,7 @@ from ..database.crud import (
     get_menus_from_db,
     add_new_menu_to_db,
 )
-from ..schemas.rest_schemas import Menu, MenuCreateRequest
+from ..schemas.rest_schemas import MenuResponse, MenuCreateRequest
 
 router = APIRouter()
 
@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get(
     "/menus",
     operation_id="get_menus",
-    response_model=list[Menu],  # Response Body (Pydantic)
+    response_model=list[MenuResponse],  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,
     tags=["menu"],
     summary="전체 Menu 목록 조회",

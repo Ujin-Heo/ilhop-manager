@@ -347,7 +347,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Menu'
+                  $ref: '#/components/schemas/MenuResponse'
         '500':
           description: 서버 내부 오류 (메뉴 데이터를 불러올 수 없음)
           content:
@@ -375,7 +375,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Menu'
+                $ref: '#/components/schemas/MenuResponse'
         '400':
           description: 잘못된 요청 데이터
         default:
@@ -434,7 +434,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderDetail'
+                $ref: '#/components/schemas/OrderCreateResponse'
         '400':
           description: 잘못된 요청 데이터
         '404':
@@ -476,7 +476,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderDetail'
+                $ref: '#/components/schemas/OrderBrief'
         '404':
           description: "존재하지 않는 주문 ID"
         default:
@@ -516,8 +516,7 @@ paths:
           content:
             application/json:
               schema:
-                # 수정된 주문의 전체 객체를 반환하여 프론트엔드 UI 동기화를 도움
-                $ref: '#/components/schemas/OrderDetail'
+                $ref: '#/components/schemas/OrderBrief'
         '404':
           description: "해당 주문을 찾을 수 없음"
         default:
@@ -741,7 +740,7 @@ components:
         - menuName
         - price
 
-    Menu:
+    MenuResponse:
       type: object
       properties:
         menuId:
@@ -772,43 +771,6 @@ components:
         - menuId
         - menuName
         - price
-    
-    OrderSummaryResponse:
-      type: object
-      properties:
-        totalAmount:
-          type: integer
-          format: int64
-          description: "해당 테이블의 전체 결제 금액 합계"
-          example: 25000
-        orderItems:
-          type: array
-          items:
-            type: object
-            properties:
-              menuName:
-                type: string
-                example: "좋은토닉"
-              totalQuantity:
-                type: integer
-                description: "메뉴+옵션 조합의 합계 수량"
-                example: 2
-              unitPrice:
-                type: integer
-                format: int64
-                example: 5000
-              selectedOption:
-                type: string
-                nullable: true
-                description: "선택된 옵션명 (없으면 null)"
-                example: "살구맛"
-            required:
-              - menuName
-              - totalQuantity
-              - unitPrice
-      required:
-        - totalAmount
-        - orderItems
 
     OrderCreateRequest:
       type: object
@@ -834,6 +796,33 @@ components:
         - totalPrice
         - items
 
+    OrderCreateResponse:
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        orderTime:
+          type: string
+          format: date-time
+          example: "2024-04-12T19:00:00Z"
+        totalPrice:
+          type: integer
+          format: int64
+          example: 30000
+        depositor: # 입금자명 대조를 위해 필요함
+          type: string
+          example: "홍길동"
+        items: # 해당 주문 건에 포함된 메뉴들
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemBrief'
+      required:
+        - orderId
+        - orderTime
+        - totalPrice
+
     OrderPaymentUpdateRequest:
       type: object
       properties:
@@ -855,6 +844,22 @@ components:
           example: "현금으로 50,000원 지불 확인됨"
       required:
         - memo
+
+    OrderBrief:
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440002"
+        isPaid:
+          type: boolean
+          default: false
+          example: false
+        memo:
+          type: string
+          nullable: true
+          example: "현금 결제 완료"
 
     OrderDetail:
       type: object
@@ -900,6 +905,21 @@ components:
         - orderTime
         - totalPrice
         - isPaid
+
+    OrderSummaryResponse:
+      type: object
+      properties:
+        totalAmount:
+          type: integer
+          format: int64
+          description: "해당 테이블의 전체 결제 금액 합계"
+          example: 25000
+        orderItems:
+          type: object
+          $ref: "#/components/schemas/OrderItemSummaryResponse"
+      required:
+        - totalAmount
+        - orderItems
 
     OrderItemRequest:
       type: object
@@ -958,6 +978,30 @@ components:
         - menuName
         - quantity
         - isServed
+
+    OrderItemSummaryResponse:
+      type: object
+      properties:
+        menuName:
+          type: string
+          example: "좋은토닉"
+        totalQuantity:
+          type: integer
+          description: "메뉴+옵션 조합의 합계 수량"
+          example: 2
+        unitPrice:
+          type: integer
+          format: int64
+          example: 5000
+        selectedOption:
+          type: string
+          nullable: true
+          description: "선택된 옵션명 (없으면 null)"
+          example: "살구맛"
+      required:
+        - menuName
+        - totalQuantity
+        - unitPrice
     
     PaymentConfirmInfo:
       type: object
