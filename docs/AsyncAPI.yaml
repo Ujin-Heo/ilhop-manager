@@ -53,11 +53,7 @@ components:
         properties:
           event: { type: string, const: "ITEM_SERVED_UPDATED" }
           data:
-            type: object
-            properties:
-              orderId: { type: string, format: uuid }
-              menuName: { type: string }
-              isServed: { type: boolean }
+            $ref: "./OpenAPI.yaml#/components/schemas/OrderItemServedUpdateResponse"
 
     PaymentConfirmed:
       summary: "특정 주문의 입금 확인이 완료되었을 때 알림"

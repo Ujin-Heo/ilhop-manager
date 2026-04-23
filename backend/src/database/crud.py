@@ -13,6 +13,7 @@ from ..schemas.rest_schemas import (
     MenuCreateRequest,
     OrderDetail,
     OrderCreateRequest,
+    PaymentConfirmInfo,
 )
 
 
@@ -358,6 +359,9 @@ async def update_order_data_in_db(
     return order_to_update
 
 
+# ========= Order Item 관련 로직 ===========================================
+
+
 async def update_order_item_data_in_db(
     db: AsyncSession,
     order_id: str,
@@ -391,3 +395,11 @@ async def update_order_item_data_in_db(
     await db.commit()
 
     return order_item_to_update
+
+
+# ========= External 관련 로직 ===========================================
+
+
+async def compare_payment_info_with_db(
+    db: AsyncSession, request_data: PaymentConfirmInfo
+) -> str: ...
