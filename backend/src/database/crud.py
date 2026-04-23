@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from .models import Table, Customer, Menu, Order, OrderItem
 from ..schemas.rest_schemas import (
+    BaseModel,
     TableCreateRequest,
     TableUpdateRequest,
     CustomerCreateRequest,
@@ -13,6 +14,7 @@ from ..schemas.rest_schemas import (
     OrderDetail,
     OrderCreateRequest,
     OrderPaymentUpdateRequest,
+    OrderMemoUpdateRequest,
 )
 
 
@@ -333,9 +335,12 @@ async def add_new_order_to_db(
     return new_order
 
 
-async def update_order_is_paid_in_db(
-    db: AsyncSession, order_id: str, request_data: OrderPaymentUpdateRequest
+async def update_order_data_in_db(
+    db: AsyncSession,
+    order_id: str,
+    request_data: BaseModel,  # 모든 Pydantic 모델 허용 (주문의 depositor 변경 등도 처리 가능)
 ) -> OrderDetail:
+
     # 1. 업데이트할 주문 조회
     stmt = select(Order).where(Order.order_id == order_id)
     result = await db.execute(stmt)
@@ -345,7 +350,10 @@ async def update_order_is_paid_in_db(
         raise NoResultFound(f"order_id가 {order_id}인 주문이 존재하지 않습니다.")
 
     # 2. 값 업데이트
-    order_to_update.is_paid = request_data.is_paid
+    update_data = request_data.model_dump(exclude_unset=True)
+    for key, val in update_data.items():
+        if hasattr(order_to_update, key):  # 모델에 해당 필드가 있는지 확인 후 할당
+            setattr(order_to_update, key, val)
 
     # 3. 업데이트 결과 임시 반영
     # commit 대신 flush를 쓰는 이유는 혹시 이후 OrderDetail 생성 과정에서 문제가 생기면
@@ -368,11 +376,10 @@ async def update_order_is_paid_in_db(
     row: Row = result.mappings().one()
 
     updated_order = row["Order"]
-    t_num = row["table_num"]
 
     updated_order_detail = OrderDetail(
         order_id=updated_order.order_id,
-        table_num=t_num,
+        table_num=row["table_num"],
         customer_id=updated_order.customer_id,
         order_time=updated_order.order_time,
         total_price=updated_order.total_price,

@@ -6,12 +6,13 @@ from ..database.models import get_db, Order
 from ..database.crud import (
     get_orders_from_db,
     add_new_order_to_db,
-    update_order_is_paid_in_db,
+    update_order_data_in_db,
 )
 from ..schemas.rest_schemas import (
     OrderDetail,
     OrderCreateRequest,
     OrderPaymentUpdateRequest,
+    OrderMemoUpdateRequest,
 )
 
 from typing import Annotated
@@ -108,7 +109,54 @@ async def update_order_is_paid(
     해당 주문(`order`)의 `is_paid`를 `true`로 변경합니다.
     """
     try:
-        updated_order_detail: OrderDetail = await update_order_is_paid_in_db(
+        updated_order_detail: OrderDetail = await update_order_data_in_db(
+            db, order_id, request_data
+        )
+        return updated_order_detail
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 해당 주문을 찾을 수 없음] {str(nrfe)}",
+        )
+    except IntegrityError as ie:
+        # DB 제약 조건 위반 (중복 번호) 시 발생
+        await db.rollback()  # 에러 발생 시 세션을 되돌립니다.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"[❌ 데이터 제약 조건 위반] {str(ie)}",
+        )
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"[❌ 잘못된 요청] {str(ve)}",
+        )
+    except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.patch(
+    "/orders/{order_id}/memo",
+    operation_id="update_order_memo",
+    response_model=OrderDetail,  # Response Body (Pydantic)
+    status_code=status.HTTP_200_OK,
+    tags=["order"],
+    summary="주문 비고(메모) 업데이트",
+)
+async def update_order_memo(
+    order_id: str,  # Path Parameter
+    request_data: OrderMemoUpdateRequest,  # Request Body (Pydantic)
+    db: AsyncSession = Depends(get_db),  # DB Session Injection
+):
+    """
+    특정 주문에 대해 관리자(캐셔)가 메모를 작성하거나 수정합니다.\n
+    빈 문자열을 보낼 경우 메모가 삭제(또는 초기화)됩니다.
+    """
+    try:
+        updated_order_detail: OrderDetail = await update_order_data_in_db(
             db, order_id, request_data
         )
         return updated_order_detail
