@@ -451,7 +451,7 @@ paths:
       summary: "주문 결제 상태 수동 업데이트"
       description: |
         현금 결제 완료 또는 계좌 이체 수동 확인 시 사용합니다. 
-        해당 주문(`order`)의 `payment_status`를 `true`로 변경합니다.
+        해당 주문(`order`)의 `isPaid`를 `true`로 변경합니다.
       operationId: updateOrderisPaid
       parameters:
         - name: orderId

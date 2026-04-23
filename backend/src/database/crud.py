@@ -12,6 +12,7 @@ from ..schemas.rest_schemas import (
     MenuCreateRequest,
     OrderDetail,
     OrderCreateRequest,
+    OrderPaymentUpdateRequest,
 )
 
 
@@ -330,3 +331,58 @@ async def add_new_order_to_db(
     new_order = result.scalar_one()
 
     return new_order
+
+
+async def update_order_is_paid_in_db(
+    db: AsyncSession, order_id: str, request_data: OrderPaymentUpdateRequest
+) -> OrderDetail:
+    # 1. 업데이트할 주문 조회
+    stmt = select(Order).where(Order.order_id == order_id)
+    result = await db.execute(stmt)
+    order_to_update = result.scalar_one_or_none()
+
+    if order_to_update is None:
+        raise NoResultFound(f"order_id가 {order_id}인 주문이 존재하지 않습니다.")
+
+    # 2. 값 업데이트
+    order_to_update.is_paid = request_data.is_paid
+
+    # 3. 업데이트 결과 임시 반영
+    # commit 대신 flush를 쓰는 이유는 혹시 이후 OrderDetail 생성 과정에서 문제가 생기면
+    # flush 전에 업데이트한 내용까지 rollback하기 위함임
+    await db.flush()
+
+    # 4. 업데이트된 결과를 불러와서 OrderDetail 반환 결과물 만들기
+    stmt = (
+        select(Order, Table.table_num)
+        .join(Order.customer)
+        .join(Customer.table)
+        .options(
+            selectinload(Order.items)
+        )  # OrderDetail 안에는 items도 포함되므로 추가
+        .where(Order.order_id == order_id)
+    )
+
+    result = await db.execute(stmt)
+    # mappings().one()을 쓰면 컬럼명으로 접근 가능
+    row: Row = result.mappings().one()
+
+    updated_order = row["Order"]
+    t_num = row["table_num"]
+
+    updated_order_detail = OrderDetail(
+        order_id=updated_order.order_id,
+        table_num=t_num,
+        customer_id=updated_order.customer_id,
+        order_time=updated_order.order_time,
+        total_price=updated_order.total_price,
+        depositor=updated_order.depositor,
+        is_paid=updated_order.is_paid,
+        memo=updated_order.memo,
+        items=updated_order.items,
+    )
+
+    # 5. 모든 DB 작업이 성공했을 떄 최종 커밋
+    await db.commit()
+
+    return updated_order_detail
