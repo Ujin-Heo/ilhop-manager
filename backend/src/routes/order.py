@@ -66,8 +66,11 @@ async def create_order(
 ):
     """
     localStorage의 장바구니 데이터를 받아 주문을 생성합니다.\n
-    백엔드는 `orders` 테이블에 기본 정보를 저장하고, 상세 메뉴들을 `order_items`에 기록합니다.
+        백엔드는 `orders` 테이블에 기본 정보를 저장하고, 상세 메뉴들을 `order_items`에 기록합니다.\n
+        장바구니 안에서 같은 `order_id`와 `selected_option`을 가진 항목은 반드시 하나의 `order_item`으로 묶여 있어야 합니다.\n
+        즉, 하나의 (`order_id`, `menu_id`, `selected_option`) 조합으로 유일한 `order_item`을 특정할 수 있어야 합니다.
     """
+
     try:
         new_order: Order = await add_new_order_to_db(db, request_data)
         return new_order

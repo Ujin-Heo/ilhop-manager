@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import table, customer, menu, order
+from .routes import table, customer, menu, order, order_item
 
 app = FastAPI()
 
@@ -18,3 +18,4 @@ app.include_router(table.router)
 app.include_router(customer.router)
 app.include_router(menu.router)
 app.include_router(order.router)
+app.include_router(order_item.router)

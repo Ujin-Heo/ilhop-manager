@@ -416,8 +416,10 @@ paths:
         - order
       summary: "새 주문 생성 (장바구니 결제)"
       description: |
-        localStorage의 장바구니 데이터를 받아 주문을 생성합니다. 
+        localStorage의 장바구니 데이터를 받아 주문을 생성합니다.
         백엔드는 `orders` 테이블에 기본 정보를 저장하고, 상세 메뉴들을 `order_items`에 기록합니다.
+        장바구니 안에서 같은 `order_id`와 `selected_option`을 가진 항목은 반드시 하나의 `order_item`으로 묶여 있어야 합니다.
+        즉, 하나의 (`order_id`, `menu_id`, `selected_option`) 조합으로 유일한 `order_item`을 특정할 수 있어야 합니다.
       operationId: createOrder
       requestBody:
         description: 주문 정보 및 장바구니에 담긴 메뉴 리스트
@@ -533,7 +535,7 @@ paths:
       description: |
         홀서빙 담당자가 특정 메뉴의 서빙을 완료했을 때 호출합니다. 
         해당 주문 항목(`order_item`)의 `is_served` 상태를 `true`로 변경하여 
-        캐셔와 홀서빙 화면에 실시간으로 반영되도록 합니다. [cite: 33, 41]
+        캐셔와 홀서빙 화면에 실시간으로 반영되도록 합니다.
       operationId: updateOrderItemServedStatus
       parameters:
         - name: orderId
@@ -550,6 +552,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: selectedOption
+          in: query
+          description: "대상 메뉴의 선택된 옵션"
+          required: false
+          schema:
+            type: string
+            example: "살구맛"
       requestBody:
         description: "변경할 서빙 상태 값"
         required: true

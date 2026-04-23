@@ -8,13 +8,11 @@ from ..schemas.rest_schemas import (
     TableCreateRequest,
     TableUpdateRequest,
     CustomerCreateRequest,
-    OrderItem,
+    OrderItemSummaryResponse,
     OrderSummaryResponse,
     MenuCreateRequest,
     OrderDetail,
     OrderCreateRequest,
-    OrderPaymentUpdateRequest,
-    OrderMemoUpdateRequest,
 )
 
 
@@ -221,7 +219,7 @@ async def get_customer_order_summary_from_db(
     order_items = []
     total_amount = 0
     for row in rows:
-        item = OrderItem(
+        item = OrderItemSummaryResponse(
             menu_name=row["menu_name"],
             total_quantity=row["total_quantity"],
             unit_price=row["unit_price"],
@@ -393,3 +391,38 @@ async def update_order_data_in_db(
     await db.commit()
 
     return updated_order_detail
+
+
+async def update_order_item_data_in_db(
+    db: AsyncSession,
+    order_id: str,
+    menu_id: str,
+    selected_option: str | None,
+    request_data: BaseModel,
+) -> OrderItem:
+
+    stmt = select(OrderItem).where(
+        OrderItem.order_id == order_id,
+        OrderItem.menu_id == menu_id,
+        OrderItem.selected_option == selected_option,
+    )
+    # 옵션 선택이 필수가 아닌 메뉴가 있는 경우,
+    # selected_option 값이 None이어도 where 안에 넣어두지 않으면 특정 옵션이 선택된 같은 menu_id의 다른 항목까지 여러개가 불러와질 수 있음
+    # 즉, 위 코드처럼 OrderItem.selected_option == None임을 명시하는 것이 안전함
+
+    result = await db.execute(stmt)
+    order_item_to_update: OrderItem | None = result.scalar_one_or_none()
+
+    if order_item_to_update is None:
+        raise NoResultFound(
+            f"(order_id: {order_id},\n menu_id: {menu_id},\n selected_option: {selected_option})을 만족하는 주문 항목이 존재하지 않습니다."
+        )
+
+    update_data = request_data.model_dump(exclude_unset=True)
+    for key, val in update_data.items():
+        if hasattr(order_item_to_update, key):
+            setattr(order_item_to_update, key, val)
+
+    await db.commit()
+
+    return order_item_to_update

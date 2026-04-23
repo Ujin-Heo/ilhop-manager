@@ -185,7 +185,7 @@ class OrderSummaryResponse(BaseSchema):
     total_amount: Annotated[
         int, Field(description="해당 테이블의 전체 결제 금액 합계", examples=[25000])
     ]
-    order_items: list[OrderItem]
+    order_items: list[OrderItemSummaryResponse]
 
 
 class OrderPaymentUpdateRequest(BaseSchema):
@@ -225,7 +225,7 @@ class OrderItemBrief(BaseSchema):
     is_served: Annotated[bool, Field(examples=[False])]
 
 
-class OrderItem(BaseSchema):
+class OrderItemSummaryResponse(BaseSchema):
     menu_name: Annotated[str, Field(examples=["좋은토닉"])]
     total_quantity: Annotated[
         int, Field(description="메뉴+옵션 조합의 합계 수량", examples=[2])
