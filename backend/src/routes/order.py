@@ -17,6 +17,8 @@ from ..schemas.rest_schemas import (
     OrderMemoUpdateRequest,
     OrderMemoUpdateResponse,
 )
+from ..schemas.ws_schemas import OrderCreatedMessage
+from ..modules.websocket_manager import manager
 
 from typing import Annotated
 
@@ -75,7 +77,14 @@ async def create_order(
     """
 
     try:
-        new_order: Order = await add_new_order_to_db(db, request_data)
+        new_order, new_order_detail = await add_new_order_to_db(db, request_data)
+
+        # WebSocket으로 관리자(캐셔)에게 보낼 메시지 생성
+        message = OrderCreatedMessage(data=new_order_detail)
+
+        # 모델의 데이터를 딕셔너리로 변환하여 전송
+        await manager.broadcast_to_admins(message.model_dump())
+
         return new_order
 
     except IntegrityError as ie:

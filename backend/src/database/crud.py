@@ -301,7 +301,7 @@ async def get_orders_from_db(
 
 async def add_new_order_to_db(
     db: AsyncSession, request_data: OrderCreateRequest
-) -> Order:
+) -> tuple[Order, OrderDetail]:
     # 1. Order 객체 생성
     new_order = Order(
         customer_id=request_data.customer_id,
@@ -324,14 +324,30 @@ async def add_new_order_to_db(
     # eager loading으로 new_order에 딸린 items까지 같이 불러온다는 걸
     # 명시적으로 보여주기 위해 아래와 같이 씀.
     stmt = (
-        select(Order)
+        select(Order, Table.table_num)
+        .join(Order.customer)
+        .join(Customer.table)
         .options(selectinload(Order.items))
         .where(Order.order_id == new_order.order_id)
     )
     result = await db.execute(stmt)
-    new_order = result.scalar_one()
+    row: Row = result.mappings().one()
 
-    return new_order
+    new_order: Order = row["Order"]
+
+    new_order_detail = OrderDetail(
+        order_id=new_order.order_id,
+        table_num=row["table_num"],  # DB에서 가져온 table_num 주입!
+        customer_id=new_order.customer_id,
+        order_time=new_order.order_time,
+        total_price=new_order.total_price,
+        depositor=new_order.depositor,
+        is_paid=new_order.is_paid,
+        memo=new_order.memo,
+        items=new_order.items,  # selectinload 덕분에 이미 들어있음
+    )
+
+    return new_order, new_order_detail
 
 
 async def update_order_data_in_db(
