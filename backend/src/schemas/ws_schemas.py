@@ -18,6 +18,6 @@ class PaymentConfirmedMessage(BaseModel):
     data: OrderPaymentUpdateResponse
 
 
-class ItemServedUpdated(BaseModel):
+class ItemServedUpdatedMessage(BaseModel):
     event: Literal["ITEM_SERVED_UPDATED"] = "ITEM_SERVED_UPDATED"
     data: OrderItemServedUpdateResponse

@@ -8,6 +8,8 @@ from ..schemas.rest_schemas import (
     OrderItemServedUpdateRequest,
     OrderItemServedUpdateResponse,
 )
+from ..schemas.ws_schemas import ItemServedUpdatedMessage
+from ..modules.websocket_manager import manager
 
 from typing import Annotated
 
@@ -38,6 +40,18 @@ async def update_order_item_served_status(
         updated_order_item: OrderItem = await update_order_item_data_in_db(
             db, order_id, menu_id, selected_option, request_data
         )
+
+        message = ItemServedUpdatedMessage(
+            data=OrderItemServedUpdateResponse(
+                order_id=updated_order_item.order_id,
+                menu_id=updated_order_item.menu_id,
+                selected_option=updated_order_item.selected_option,
+                is_served=updated_order_item.is_served,
+            )
+        )
+
+        await manager.broadcast_to_admins(message.model_dump())
+
         return updated_order_item
 
     except NoResultFound as nrfe:
