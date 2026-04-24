@@ -41,7 +41,7 @@ async def get_menus(
 @router.post(
     "/menus",
     operation_id="create_menu",
-    response_model=Menu,  # Response Body (Pydantic)
+    response_model=MenuResponse,  # Response Body (Pydantic)
     status_code=status.HTTP_201_CREATED,
     tags=["menu"],
     summary="새로운 메뉴 추가",

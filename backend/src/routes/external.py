@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..database.models import get_db
 from ..schemas.rest_schemas import PaymentConfirmInfo, OrderPaymentUpdateResponse
 from ..schemas.ws_schemas import PaymentConfirmedMessage
 from ..database.crud import compare_payment_info_with_db
@@ -17,7 +18,9 @@ router = APIRouter()
     tags=["external"],
     summary="MacroDroid가 입금 확인을 알릴 때 사용함",
 )
-async def confirm_payment(request_data: PaymentConfirmInfo, db: AsyncSession):
+async def confirm_payment(
+    request_data: PaymentConfirmInfo, db: AsyncSession = Depends(get_db)
+):
     """
     총무의 핸드폰으로 토스 입금 알림이 오면, 핸드폰에 설치된 MacroDroid 앱이\n
     `PaymentConfirmInfo` 형식의 request body를 담은 request를 백엔드로 보냄
