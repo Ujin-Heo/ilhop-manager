@@ -10,6 +10,7 @@ from ..schemas.rest_schemas import (
     CustomerCreateRequest,
     OrderItemSummaryResponse,
     OrderSummaryResponse,
+    OrderPaymentUpdateRequest,
     MenuCreateRequest,
     OrderDetail,
     OrderCreateRequest,
@@ -418,4 +419,41 @@ async def update_order_item_data_in_db(
 
 async def compare_payment_info_with_db(
     db: AsyncSession, request_data: PaymentConfirmInfo
-) -> str: ...
+) -> str:
+    depositor, total_price = _extract_payment_info(request_data)
+
+    stmt = select(Order.order_id).where(
+        Order.depositor == depositor, Order.total_price == total_price
+    )
+    result = await db.execute(stmt)
+    order_id = result.scalar_one_or_none()
+
+    if order_id is None:
+        raise NoResultFound(
+            f"입금자명 '{depositor}'으로 '{total_price}원'을 입금해야 하는 주문이 존재하지 않습니다."
+        )
+
+    order_payment_update_request = OrderPaymentUpdateRequest(is_paid=True)
+
+    await update_order_data_in_db(
+        db=db, order_id=order_id, request_data=order_payment_update_request
+    )
+
+    return order_id
+
+
+import re
+
+
+def _extract_payment_info(data: PaymentConfirmInfo) -> tuple[str, int]:
+    # 1. 입금액 추출 (title에서 숫와 쉼표만 추출)
+    # r"(\d{1,3}(?:,\d{3}))원* (더 엄격한 버전) : 1,000 또는 10,000 등 쉼표가 포함된 숫자 패턴
+    price_match = re.search(r"([\d,]+)원", data.title)
+    total_price = int(price_match.group(1).replace(",", "")) if price_match else 0
+
+    # 2. 입금자명 추출 (message에서 ' →' 앞부분 추출)
+    # ^(.+?)\s?→ : 문자열 시작부터 ' →' 기호 전까지의 최소 일치 패턴
+    depositor_match = re.search(r"^(.+?)\s?→", data.message)
+    depositor = depositor_match.group(1).strip() if depositor_match else "Unknown"
+
+    return depositor, total_price

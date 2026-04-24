@@ -582,7 +582,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /external/bank-webhook:
+  /external/confirm-payment:
     post:
       tags:
         - external

@@ -252,9 +252,16 @@ class OrderItemSummaryResponse(BaseSchema):
 
 
 class PaymentConfirmInfo(BaseSchema):
-    title: Annotated[str | None, Field(description="알림 제목")] = None
-    message: Annotated[str | None, Field(description="알림 본문")] = None
-    app: Annotated[str | None, Field(description="알림 보낸 앱")] = None
+    title: Annotated[
+        str | None, Field(description="알림 제목", examples=["1,024원 입금"])
+    ] = None
+    message: Annotated[
+        str | None,
+        Field(description="알림 본문", examples=["홍길동 → 내 토스뱅크 통장"]),
+    ] = None
+    app: Annotated[str | None, Field(description="알림 보낸 앱", examples=["토스"])] = (
+        None
+    )
 
 
 class Error(BaseSchema):
