@@ -18,6 +18,8 @@ from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+from ..modules.logging_config import configure_sqlalchemy_logger
+
 # .env 파일 로드 (backend 디렉토리 기준)
 load_dotenv()
 
@@ -32,7 +34,8 @@ DATABASE_URL = os.getenv(
 if DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in DATABASE_URL:
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+configure_sqlalchemy_logger()
+engine = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
