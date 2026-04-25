@@ -9,7 +9,7 @@ from uuid import UUID
 
 from pydantic import (
     AnyUrl,
-    AwareDatetime,
+    NaiveDatetime,
     BaseModel,
     ConfigDict,
     Field,
@@ -88,7 +88,7 @@ class CustomerBrief(BaseSchema):
         UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
     ]
     entry_time: Annotated[
-        AwareDatetime,
+        NaiveDatetime,
         Field(
             description="입장 시각 (프론트엔드에서 경과 시간 계산용)",
             examples=["2024-04-12T18:25:30Z"],

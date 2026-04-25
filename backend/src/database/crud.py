@@ -144,7 +144,7 @@ async def get_customers_from_db(
 
     if customers is None:
         raise NoResultFound(
-            f"{table_num} 테이블에 있는 is_active==True인 손님이 없습니다."
+            f"{table_num}번 테이블을 현재 사용 중인(is_active==True) 손님이 없습니다."
         )
 
     return customers
