@@ -18,7 +18,9 @@ class MultipleColorSQLFormatter(logging.Formatter):
     # SQL 키워드별 고유 색상 매핑
     SQL_COLORS = {
         "SELECT": CYAN,
+        "GET": CYAN,
         "INSERT": GREEN,
+        "POST": GREEN,
         "PATCH": YELLOW,
         "UPDATE": YELLOW,
         "DELETE": RED,
@@ -72,7 +74,7 @@ class MultipleColorSQLFormatter(logging.Formatter):
                 color = self.RED
             else:
                 color = ""
-            return f"{color}{self.BOLD}{status}{self.RESET}"
+            return f"{color}{self.BOLD}{status}{self.RESET}\n"
 
         message = re.sub(r"\b(20[0-9]|40[0-9]|50[0-9])\b", colorize_status, message)
 
