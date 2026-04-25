@@ -53,12 +53,21 @@ async def add_new_table_to_db(
     db.add(new_table)
 
     # 3. 비동기 환경에서는 반드시 await flush() 또는 commit()을 해야 합니다.
-    # commit()을 하면 DB에서 정의한 DEFAULT 값(UUID)이 생성됩니다.
-    await db.commit()
+    # commit()/flush()을 하면 DB에서 정의한 DEFAULT 값(UUID)이 생성됩니다.
+    await db.flush()
 
     # 4. 중요: refresh를 호출해야 DB에서 자동으로 생성된 table_id(UUID)를
     # 파이썬 객체(new_table)가 다시 읽어와서 response_model에 담길 수 있습니다.
-    await db.refresh(new_table)
+    # await db.refresh(new_table) -> selectinload 사용을 위해 쓰지 않고 신 아래의 stmt로 대체함.
+    stmt = (
+        select(Table)
+        .options(selectinload(Table.customers.and_(Customer.is_active == True)))
+        .where(Table.table_id == new_table.table_id)
+    )
+    result = await db.execute(stmt)
+    new_table = result.scalar_one()
+
+    await db.commit()
 
     return new_table
 
@@ -70,12 +79,15 @@ async def update_table_in_db(
     DB에서 table_id를 가진 Table을 찾아서 request_data 안의 정보로 업데이트합니다.
     """
     # 1. DB에서 request_data의 table_id를 가진 Table을 찾기
-    # stmt = select(Table).where(Table.table_id == table_id)
-    # result = await db.execute(stmt)
-    # table_to_update: Table = result.scalar_one_or_none()
-
-    # 위의 세 줄보다 db.get() 사용하는 게 더 효율적임
-    table_to_update = await db.get(Table, table_id)
+    # Primary Key를 사용한 데이터 조회는 db.get()를 사용하는 게 더 효율적이나, selectinload 사용을 위해 아래와 같은 stmt 사용함.
+    # table_to_update = await db.get(Table, table_id)
+    stmt = (
+        select(Table)
+        .options(selectinload(Table.customers.and_(Customer.is_active == True)))
+        .where(Table.table_id == table_id)
+    )
+    result = await db.execute(stmt)
+    table_to_update = result.scalar_one()
 
     if not table_to_update:
         raise ValueError(f"ID가 {table_id}인 테이블을 찾을 수 없습니다.")
@@ -87,7 +99,7 @@ async def update_table_in_db(
 
     # 3. 수정 내용 반영
     await db.commit()
-    await db.refresh(table_to_update)
+    # await db.refresh(table_to_update) -> expire_on_commit=False이므로 굳이 갱신 필요 없음
 
     return table_to_update
 

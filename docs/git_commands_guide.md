@@ -50,6 +50,7 @@
 - `git status` 현재 내가 위치해있는 브랜치에서 어떤 변경사항이 staged(add) 되어있는지 확인
 - `git add <파일 이름>` 특정한 파일만 stage시킴
 - `git add .` 현재 디렉토리의 모든 파일을 stage시킴
+- `git reset --soft HEAD~1` 아직 push하지 않은 최근 commit 1개를 취소함. (변경사항은 유지)
 
 ## 참고) `origin/main`과 `main`의 차이 (다른 브랜치들도 마찬가지)
 
