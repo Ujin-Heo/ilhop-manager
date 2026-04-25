@@ -8,7 +8,6 @@ from typing import Annotated
 from uuid import UUID
 
 from pydantic import (
-    AnyUrl,
     NaiveDatetime,
     BaseModel,
     ConfigDict,
@@ -16,6 +15,8 @@ from pydantic import (
     model_validator,
 )
 from pydantic.alias_generators import to_camel
+
+URL_REGEX = r"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$"
 
 
 class BaseSchema(BaseModel):
@@ -103,9 +104,10 @@ class MenuCreateRequest(BaseSchema):
     ]
     price: Annotated[int, Field(description="판매 가격 (원 단위)")]
     image_url: Annotated[
-        AnyUrl | None,
+        str | None,
         Field(
             description="메뉴 사진 경로",
+            pattern=URL_REGEX,
             examples=["https://example.com/images/chicken.jpg"],
         ),
     ] = None
@@ -125,9 +127,10 @@ class MenuResponse(BaseSchema):
     ]
     price: Annotated[int, Field(description="판매 가격 (원 단위)", examples=[15000])]
     image_url: Annotated[
-        AnyUrl | None,
+        str | None,
         Field(
             description="메뉴 사진 경로",
+            pattern=URL_REGEX,
             examples=["https://example.com/images/chicken.jpg"],
         ),
     ] = None
@@ -156,7 +159,7 @@ class OrderCreateResponse(BaseSchema):
     """POST /orders 전용 응답 스키마 (손님에게 보여질 내용만 전송)"""
 
     order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
-    order_time: Annotated[AwareDatetime, Field(examples=["2024-04-12T19:00:00Z"])]
+    order_time: Annotated[NaiveDatetime, Field(examples=["2024-04-12T19:00:00Z"])]
     total_price: Annotated[int, Field(examples=[30000])]
     depositor: Annotated[str | None, Field(examples=["홍길동"])] = None
     items: list[OrderItemBrief] | None = None
@@ -197,7 +200,7 @@ class OrderDetail(BaseSchema):
     customer_id: Annotated[
         UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
     ]
-    order_time: Annotated[AwareDatetime, Field(examples=["2024-04-12T19:00:00Z"])]
+    order_time: Annotated[NaiveDatetime, Field(examples=["2024-04-12T19:00:00Z"])]
     total_price: Annotated[int, Field(examples=[30000])]
     depositor: Annotated[str | None, Field(examples=["홍길동"])] = None
     is_paid: Annotated[bool, Field(examples=[False])]
