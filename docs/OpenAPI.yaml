@@ -284,7 +284,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  
+
+  /customers/{customer_id}:
+    patch:
+      tags:
+        - customer
+      summary: "특정 고객을 퇴장 처리함"
+      description: |
+        특정 고객 ID를 사용하여 해당 고객이 퇴장하고 난 후 `isActive`를 `false`로 만듦.
+      operationId: updateCustomerActiveStatus
+      parameters:
+        - name: customerId
+          in: path
+          description: "조회할 고객의 UUID"
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440005"
+        - name: isActive
+          in: query
+          description: "손님의 착석(퇴장) 여부"
+          required: true
+          schema:
+            type: boolean
+            default: false
+            example: true
+      responses:
+        '200':
+          description: "성공적으로 고객을 퇴장 처리함"
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/CustomerBrief'
+        '400':
+          description: "잘못된 파라미터 형식"
+        default:
+          description: "서버 오류"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /customers/{customer_id}/order-summary:
     get:
       tags:

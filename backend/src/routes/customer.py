@@ -6,6 +6,7 @@ from ..database.models import get_db, Customer
 from ..database.crud import (
     get_customers_from_db,
     add_new_customer_to_db,
+    update_customer_active_status_in_db,
     get_customer_order_summary_from_db,
 )
 from ..schemas.rest_schemas import (
@@ -88,6 +89,45 @@ async def create_customer(
             detail=f"[❌ 헤당 데이터를 찾을 수 없음] {str(nrfe)}",
         )
     except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.patch(
+    "/customers/{customer_id}",
+    operation_id="update_customer_active_status",
+    response_model=CustomerBrief,
+    status_code=status.HTTP_200_OK,
+    tags=["customer"],
+    summary="특정 고객을 퇴장 처리함",
+)
+async def update_customer_active_status(
+    customer_id: str,
+    is_active: Annotated[bool, Query(alias="isActive")],
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    특정 고객 ID를 사용하여 해당 고객이 퇴장하고 난 후 `isActive`를 `false`로 만듦.
+    """
+    try:
+        updated_customer: Customer = await update_customer_active_status_in_db(
+            db, customer_id, is_active
+        )
+        return updated_customer
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 헤당 데이터를 찾을 수 없음] {str(nrfe)}",
+        )
+    except ValueError as ve:  # 비즈니스 로직 상의 에러 (예: 음수 데이터)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"[❌ 잘못된 요청] {str(ve)}",
+        )
+    except Exception as e:  # 서버 내부 에러
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"[⚠️ 서버 오류] {str(e)}",

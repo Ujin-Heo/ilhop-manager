@@ -178,6 +178,47 @@ async def add_new_customer_to_db(
     return new_customer
 
 
+async def update_customer_active_status_in_db(
+    db: AsyncSession, customer_id: str, is_active: bool
+) -> Customer:
+
+    # 1. 고객 정보와 관계된 주문(orders) 및 주문 항목(items)을 한 번에 가져옴
+    stmt = (
+        select(Customer)
+        .where(Customer.customer_id == customer_id)
+        .options(selectinload(Customer.orders).selectinload(Order.items))
+    )
+    result = await db.execute(stmt)
+    customer_to_update = result.scalar_one_or_none()
+
+    if not customer_to_update:
+        raise NoResultFound(
+            f"요청한 고객 ID({customer_id})에 해당하는 고객이 없습니다."
+        )
+
+    # 퇴장 처리(is_active=False)를 할 때만 체크 로직 실행
+    if is_active is False:
+        for order in customer_to_update.orders:
+            # 2. 결제 여부 확인
+            if not order.is_paid:
+                raise ValueError(
+                    f"결제되지 않은 주문이 있습니다. (주문 ID: {order.order_id})"
+                )
+
+            # 3. 모든 메뉴 서빙 여부 확인
+            for item in order.items:
+                if not item.is_served:
+                    raise ValueError(
+                        f"아직 서빙되지 않은 메뉴가 있습니다. (주문 항목 ID: {order.order_id})"
+                    )
+
+    # 4. 상태 업데이트 및 저장
+    customer_to_update.is_active = is_active
+    await db.commit()
+
+    return customer_to_update
+
+
 async def get_customer_order_summary_from_db(
     db: AsyncSession, customer_id: str, is_paid: bool | None
 ) -> OrderSummaryResponse:
