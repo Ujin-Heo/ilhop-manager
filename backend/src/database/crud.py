@@ -282,32 +282,46 @@ async def get_orders_from_db(
         select(Order, Table.table_num)
         .join(Order.customer)
         .join(Customer.table)
-        .options(selectinload(Order.items))
+        .options(
+            selectinload(Order.items)
+            .joinedload(OrderItem.menu)
+            .load_only(Menu.menu_name)
+        )
+        .order_by(Order.order_time.desc())
     )
 
     if is_paid is not None:
         stmt = stmt.where(Order.is_paid == is_paid)
 
     result = await db.execute(stmt)
-    rows: list[Row] = result.all()
+    rows: list[Row] = result.mappings().all()
 
     order_details = []
     for row in rows:
-        order_obj: Order = row.Order
-        t_num = row.table_num
+        order_obj: Order = row["Order"]
+
+        order_item_briefs = [
+            OrderItemBrief(
+                menu_name=item.menu.menu_name,
+                quantity=item.quantity,
+                selected_option=item.selected_option,
+                is_served=item.is_served,
+            )
+            for item in order_obj.items
+        ]
 
         order_detail = OrderDetail(
             order_id=order_obj.order_id,
-            table_num=t_num,  # DB에서 가져온 table_num 주입!
+            table_num=row["table_num"],  # DB에서 가져온 table_num 주입!
             customer_id=order_obj.customer_id,
             order_time=order_obj.order_time,
             total_price=order_obj.total_price,
             depositor=order_obj.depositor,
             is_paid=order_obj.is_paid,
             memo=order_obj.memo,
-            items=order_obj.items,  # selectinload 덕분에 이미 들어있음
+            items=order_item_briefs,  # 위에서 새로 만든 order_item_briefs 삽입
         )
-        # **order_obj.__dict__ 보다 일일이 나열하는 게 디버깅이 편함.
+
         order_details.append(order_detail)
 
     return order_details
