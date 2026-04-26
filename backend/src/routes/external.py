@@ -57,7 +57,7 @@ async def confirm_payment(
     except MultipleResultsFound as nrfe:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"[⚠️ 해당 조건을 만족하는 주문이 여러 개 존재함] 수동으로 입금 확인이 필요합니다. {str(nrfe)}",
+            detail=f"[⚠️ 해당 조건을 만족하는 입금 미확인 주문이 여러 개 존재함] 수동으로 입금 확인이 필요합니다. {str(nrfe)}",
         )
     except ValueError as ve:
         raise HTTPException(

@@ -465,7 +465,9 @@ async def compare_payment_info_with_db(
     depositor, total_price = _extract_payment_info(request_data)
 
     stmt = select(Order.order_id).where(
-        Order.depositor == depositor, Order.total_price == total_price
+        Order.depositor == depositor,
+        Order.total_price == total_price,
+        Order.is_paid == False,
     )
     result = await db.execute(stmt)
     order_id = result.scalar_one_or_none()
