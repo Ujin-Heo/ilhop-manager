@@ -1,7 +1,7 @@
 from sqlalchemy import Row, select, func
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, load_only
 from .models import Table, Customer, Menu, Order, OrderItem
 from ..schemas.rest_schemas import (
     BaseModel,
@@ -12,6 +12,7 @@ from ..schemas.rest_schemas import (
     OrderSummaryResponse,
     OrderPaymentUpdateRequest,
     MenuCreateRequest,
+    OrderItemBrief,
     OrderDetail,
     OrderCreateRequest,
     PaymentConfirmInfo,
@@ -340,13 +341,28 @@ async def add_new_order_to_db(
         select(Order, Table.table_num)
         .join(Order.customer)
         .join(Customer.table)
-        .options(selectinload(Order.items))
+        .options(
+            # 1. Order의 items를 selectinload로 가져오고
+            selectinload(Order.items)
+            # 2. 그 내부의 각 item에 대해 menu를 joinedload로 즉시 로딩합니다.
+            .joinedload(OrderItem.menu).load_only(Menu.menu_name)
+        )
         .where(Order.order_id == new_order.order_id)
     )
     result = await db.execute(stmt)
     row: Row = result.mappings().one()
 
     new_order: Order = row["Order"]
+
+    new_order_item_briefs = [
+        OrderItemBrief(
+            menu_name=item.menu.menu_name,
+            quantity=item.quantity,
+            selected_option=item.selected_option,
+            is_served=item.is_served,
+        )
+        for item in new_order.items
+    ]
 
     new_order_detail = OrderDetail(
         order_id=new_order.order_id,
@@ -357,10 +373,10 @@ async def add_new_order_to_db(
         depositor=new_order.depositor,
         is_paid=new_order.is_paid,
         memo=new_order.memo,
-        items=new_order.items,  # selectinload 덕분에 이미 들어있음
+        items=new_order_item_briefs,  # 위에서 만든 OrderItemBrief 리스트 넣기
     )
 
-    return new_order, new_order_detail
+    return new_order_detail
 
 
 async def update_order_data_in_db(

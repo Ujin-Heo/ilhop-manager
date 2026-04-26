@@ -77,7 +77,7 @@ async def create_order(
     """
 
     try:
-        new_order, new_order_detail = await add_new_order_to_db(db, request_data)
+        new_order_detail = await add_new_order_to_db(db, request_data)
 
         # WebSocket으로 관리자(캐셔)에게 보낼 메시지 생성
         message = OrderCreatedMessage(data=new_order_detail)
@@ -85,7 +85,7 @@ async def create_order(
         # 모델의 데이터를 딕셔너리로 변환하여 전송
         await manager.broadcast_to_admins(message.model_dump())
 
-        return new_order
+        return new_order_detail
 
     except IntegrityError as ie:
         # DB 제약 조건 위반 시 발생

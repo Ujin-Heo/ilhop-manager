@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Self
 from uuid import UUID
 
 from pydantic import (
@@ -153,6 +153,15 @@ class OrderCreateRequest(BaseSchema):
         Field(description="입금자명 (현금 입금 확인용)", examples=["홍길동"]),
     ] = None
     items: list[OrderItemRequest]
+
+    @model_validator(mode="after")
+    def validate_total_price(self) -> Self:
+        calculated_sum = sum(item.quantity * item.price_at_order for item in self.items)
+        if self.total_price != calculated_sum:
+            raise ValueError(
+                f"총 가격 불일치: Request Body에 기록된 값({self.total_price}원) != 계산된 값({calculated_sum}원)"
+            )
+        return self
 
 
 class OrderCreateResponse(BaseSchema):
