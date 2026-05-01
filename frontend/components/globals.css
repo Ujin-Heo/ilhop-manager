@@ -97,6 +97,10 @@
     @apply bg-background text-foreground;
   }
 
+  main {
+    min-height: 100dvh;
+  }
+
   /* 3. 컴포넌트별 기본 설정 초기화 */
 
   /* Improve media defaults */
