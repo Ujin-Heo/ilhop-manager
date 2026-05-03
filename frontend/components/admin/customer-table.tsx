@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatEntryTime, calculateRemainingTime } from "@/lib/utils";
 
 /**
  * CustomerTable Root Component
@@ -184,14 +184,17 @@ function CustomerTableMain({
   className,
 }: CustomerTableMainProps) {
   const isOrdered = tableInfo?.ordered ?? orderedProp;
-  const entryTime = "18:37";
-  const remainingTime = 45;
+  const rawEntryTime = tableInfo?.entryTime;
+  const formattedEntryTime = rawEntryTime ? formatEntryTime(rawEntryTime) : "";
+  const remainingTime = rawEntryTime ? calculateRemainingTime(rawEntryTime) : 0;
 
   return (
     <CustomerTable className={className} ordered={isOrdered} onClick={onClick}>
       <CustomerTableHeader>
         <CustomerTableNumber>{tableNum}</CustomerTableNumber>
-        {isOrdered && <CustomerTableTime>{entryTime} 입장</CustomerTableTime>}
+        {isOrdered && (
+          <CustomerTableTime>{formattedEntryTime} 입장</CustomerTableTime>
+        )}
       </CustomerTableHeader>
 
       {isOrdered && (
@@ -218,4 +221,22 @@ function CustomerTableMain({
   );
 }
 
-export { CustomerTableMain as default };
+function CustomerTablePlaceholder() {
+  let setTableInfo = false;
+
+  return (
+    <div
+      className="w-34 h-30 p-2 flex justify-center items-center shrink-0 rounded-md bg-transparent text-black"
+      onClick={() => (setTableInfo = !setTableInfo)}
+    >
+      {setTableInfo && (
+        <form>
+          <input placeholder="테이블 번호 입력"></input>
+          <button>테이블 만들기</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+export { CustomerTableMain, CustomerTablePlaceholder };
