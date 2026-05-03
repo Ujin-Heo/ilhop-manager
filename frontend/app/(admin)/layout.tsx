@@ -14,7 +14,7 @@ export default function AdminLayout({
   return (
     <div>
       <NavigationBar links={links} />
-      <div className="pt-12">{children}</div>
+      <div className="pt-nav-bar-height">{children}</div>
     </div>
   );
 }

@@ -30,3 +30,23 @@ export function calculateRemainingTime(
   const diffMs = limitDate.getTime() - currentDate.getTime();
   return Math.max(0, Math.floor(diffMs / 60000));
 }
+
+/**
+ * Formats an ISO date string to hh:mm:ss format.
+ * Example: 2024-04-12T18:25:30Z -> 18:25:30
+ */
+export function formatOrderTime(dateString: string): string {
+  const date = new Date(dateString);
+  const hours = date.getUTCHours().toString().padStart(2, "0");
+  const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+  const seconds = date.getUTCSeconds().toString().padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Formats a number as Korean Won currency.
+ * Example: 30000 -> 30,000원
+ */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("ko-KR").format(amount) + "원";
+}
