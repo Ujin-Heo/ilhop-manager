@@ -47,6 +47,7 @@ export interface MenuCreateRequest {
 
 export interface MenuResponse {
   menuId: UUID;
+  section: string;
   menuName: string;
   price: number;
   imageUrl: string | null;

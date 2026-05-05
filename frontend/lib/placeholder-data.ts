@@ -111,6 +111,7 @@ export const ordersData: OrderDetail[] = [
 export const menuData: MenuResponse[] = [
   {
     "menuId": "550e8400-e29b-41d4-a716-446655440000",
+    "section": "안주류",
     "menuName": "치킨 가라아게",
     "price": 15000,
     "imageUrl": "https://i.namu.wiki/i/b7y5ZQOQnUzuKlMA43u_gqzZKMPhUzr_gYoi6Wph-CsKhekz9u-J5u62XWteWksPD-mFPrgu_zsv_vB_1axmYw.webp",
@@ -118,6 +119,7 @@ export const menuData: MenuResponse[] = [
   },
   {
     "menuId": "550e8400-e29b-41d4-a716-446655440001",
+    "section": "주류",
     "menuName": "좋은 토닉",
     "price": 6000,
     "imageUrl": "https://image.fnnews.com/resource/media/image/2023/12/21/202312211316405332_l.jpg",
