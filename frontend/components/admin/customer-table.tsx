@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn, formatEntryTime, calculateRemainingTime } from "@/lib/utils";
+import { CustomerBrief } from "@/lib/definitions";
 
 /**
  * CustomerTable Root Component
@@ -160,16 +161,8 @@ function CustomerTableAction({
  * Main Composed Component
  */
 interface CustomerTableMainProps {
-  tableNum: number | string;
-  tableInfo?: {
-    customerNum?: number;
-    ordered?: boolean;
-    menus?: any[];
-    totalPrice?: number;
-    entryTime?: string;
-    remainingTime?: number;
-  };
-  ordered?: boolean;
+  tableNum: number;
+  currentCustomer?: CustomerBrief | null;
   onClear?: () => void;
   onClick?: () => void;
   className?: string;
@@ -177,14 +170,13 @@ interface CustomerTableMainProps {
 
 function CustomerTableMain({
   tableNum,
-  tableInfo,
-  ordered: orderedProp = true,
+  currentCustomer,
   onClear,
   onClick,
   className,
 }: CustomerTableMainProps) {
-  const isOrdered = tableInfo?.ordered ?? orderedProp;
-  const rawEntryTime = tableInfo?.entryTime;
+  const isOrdered = !!currentCustomer;
+  const rawEntryTime = currentCustomer?.entryTime;
   const formattedEntryTime = rawEntryTime ? formatEntryTime(rawEntryTime) : "";
   const remainingTime = rawEntryTime ? calculateRemainingTime(rawEntryTime) : 0;
 

@@ -2,49 +2,7 @@ import {
   CustomerTableMain,
   CustomerTablePlaceholder,
 } from "@/components/admin/customer-table";
-
-const tableInfos = [
-  {
-    tableId: "550e8400-e29b-41d4-a716-446655440000",
-    tableNum: 3,
-    gridRow: 1,
-    gridCol: 1,
-    isAvailable: true,
-    currentCustomer: {
-      customerId: "550e8400-e29b-41d4-a716-446655440000",
-      entryTime: "2026-05-02T02:30:30Z",
-      isActive: true,
-    },
-  },
-  {
-    tableId: "550e8400-e29b-41d4-a716-446655440000",
-    tableNum: 22,
-    gridRow: 4,
-    gridCol: 8,
-    isAvailable: true,
-    currentCustomer: {
-      customerId: "550e8400-e29b-41d4-a716-446655440000",
-      entryTime: "2026-05-02T02:25:30Z",
-      isActive: true,
-    },
-  },
-  {
-    tableId: "550e8400-e29b-41d4-a716-446655440000",
-    tableNum: 7,
-    gridRow: 3,
-    gridCol: 2,
-    isAvailable: true,
-    currentCustomer: null,
-  },
-  {
-    tableId: "550e8400-e29b-41d4-a716-446655440000",
-    tableNum: 12,
-    gridRow: 2,
-    gridCol: 6,
-    isAvailable: true,
-    currentCustomer: null,
-  },
-];
+import { tableInfos } from "@/lib/placeholder-data";
 
 export default function Page() {
   const maxRow = Math.max(0, ...tableInfos.map((t) => t.gridRow));
@@ -72,10 +30,7 @@ export default function Page() {
               <CustomerTableMain
                 key={key}
                 tableNum={table.tableNum}
-                ordered={!!table.currentCustomer}
-                tableInfo={{
-                  entryTime: table.currentCustomer?.entryTime,
-                }}
+                currentCustomer={table.currentCustomer}
               />
             ) : (
               <CustomerTablePlaceholder key={key} />

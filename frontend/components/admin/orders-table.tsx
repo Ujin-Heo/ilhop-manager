@@ -2,40 +2,24 @@
 
 import { useState } from "react";
 import { formatOrderTime, formatCurrency, cn } from "@/lib/utils";
-
-export interface OrderItem {
-  menuName: string;
-  quantity: number;
-  selectedOption: string | null;
-  isServed: boolean;
-}
-
-export interface OrderInfo {
-  orderId: string;
-  tableNum: number;
-  customerId: string;
-  orderTime: string;
-  totalPrice: number;
-  depositor: string | null;
-  isPaid: boolean;
-  memo: string | null;
-  items: OrderItem[];
-}
+import { OrderDetail } from "@/lib/definitions";
 
 interface OrdersTableProps {
-  orders: OrderInfo[];
+  orders: OrderDetail[];
 }
 
 export default function OrdersTable({
   orders: initialOrders,
 }: OrdersTableProps) {
-  const [orders, setOrders] = useState<OrderInfo[]>(initialOrders);
+  const [orders, setOrders] = useState<OrderDetail[]>(initialOrders);
 
   const toggleItemServed = (orderIndex: number, itemIndex: number) => {
     const newOrders = [...orders];
-    newOrders[orderIndex].items[itemIndex].isServed =
-      !newOrders[orderIndex].items[itemIndex].isServed;
-    setOrders(newOrders);
+    const items = newOrders[orderIndex].items;
+    if (items && items[itemIndex]) {
+      items[itemIndex].isServed = !items[itemIndex].isServed;
+      setOrders(newOrders);
+    }
   };
 
   return (
@@ -54,7 +38,8 @@ export default function OrdersTable({
         </thead>
         <tbody>
           {orders.map((order, orderIdx) => {
-            const allServed = order.items.every((item) => item.isServed);
+            const items = order.items || [];
+            const allServed = items.length > 0 && items.every((item) => item.isServed);
             const rowBgColor = !order.isPaid
               ? "bg-charcoal text-silver opacity-60" // 미입금 시
               : order.isPaid && allServed
@@ -70,7 +55,7 @@ export default function OrdersTable({
                 <td className="p-4">{order.tableNum}</td>
                 <td className="p-4">
                   <div className="flex flex-wrap gap-2">
-                    {order.items.map((item, itemIdx) => (
+                    {items.map((item, itemIdx) => (
                       <button
                         key={`${orderIdx}-${itemIdx}-${item.menuName}-${item.selectedOption}`}
                         onClick={() => toggleItemServed(orderIdx, itemIdx)}

@@ -2,46 +2,31 @@
 
 import { useState } from "react";
 import { formatOrderTime, cn } from "@/lib/utils";
+import { OrderDetail } from "@/lib/definitions";
 
-export interface OrderItem {
-  menuName: string;
-  quantity: number;
-  selectedOption: string | null;
-  isServed: boolean;
-}
-
-export interface OrderInfo {
-  orderId: string;
-  tableNum: number;
-  customerId: string;
-  orderTime: string;
-  totalPrice: number;
-  depositor: string | null;
-  isPaid: boolean;
-  memo: string | null;
-  items: OrderItem[];
-}
-
-interface OrdersTableProps {
-  orders: OrderInfo[];
+interface ServingListProps {
+  orders: OrderDetail[];
 }
 
 export default function ServingList({
   orders: initialOrders,
-}: OrdersTableProps) {
-  const [orders, setOrders] = useState<OrderInfo[]>(initialOrders);
+}: ServingListProps) {
+  const [orders, setOrders] = useState<OrderDetail[]>(initialOrders);
 
   const toggleItemServed = (orderIndex: number, itemIndex: number) => {
     const newOrders = [...orders];
-    newOrders[orderIndex].items[itemIndex].isServed =
-      !newOrders[orderIndex].items[itemIndex].isServed;
-    setOrders(newOrders);
+    const items = newOrders[orderIndex].items;
+    if (items && items[itemIndex]) {
+      items[itemIndex].isServed = !items[itemIndex].isServed;
+      setOrders(newOrders);
+    }
   };
 
   return (
     <ul className="w-full space-y-4 p-4">
       {orders.map((order, orderIdx) => {
-        const allServed = order.items.every((item) => item.isServed);
+        const items = order.items || [];
+        const allServed = items.length > 0 && items.every((item) => item.isServed);
         const cardBgColor = allServed
           ? "bg-light-green text-green" // 모든 메뉴 서빙 완료 시
           : "bg-white text-black"; // 서빙 미완료 시
@@ -65,7 +50,7 @@ export default function ServingList({
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              {order.items.map((item, itemIdx) => (
+              {items.map((item, itemIdx) => (
                 <button
                   key={`${orderIdx}-${itemIdx}-${item.menuName}-${item.selectedOption}`}
                   onClick={() => toggleItemServed(orderIdx, itemIdx)}
@@ -96,13 +81,6 @@ export default function ServingList({
                 </button>
               ))}
             </div>
-
-            {/* {order.memo && (
-              <div className="mt-4 rounded-lg bg-black/5 p-3 text-xs">
-                <span className="font-bold">메모: </span>
-                {order.memo}
-              </div>
-            )} */}
           </li>
         );
       })}
