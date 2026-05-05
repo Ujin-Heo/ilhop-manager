@@ -39,7 +39,8 @@ export default function OrdersTable({
         <tbody>
           {orders.map((order, orderIdx) => {
             const items = order.items || [];
-            const allServed = items.length > 0 && items.every((item) => item.isServed);
+            const allServed =
+              items.length > 0 && items.every((item) => item.isServed);
             const rowBgColor = !order.isPaid
               ? "bg-charcoal text-silver opacity-60" // 미입금 시
               : order.isPaid && allServed
@@ -66,7 +67,7 @@ export default function OrdersTable({
                           order.isPaid
                             ? item.isServed
                               ? "bg-moss-green text-green border-green"
-                              : "border-dim-charcoal hover:bg-silver"
+                              : "border-gray hover:bg-silver"
                             : "border-silver",
                         )}
                       >

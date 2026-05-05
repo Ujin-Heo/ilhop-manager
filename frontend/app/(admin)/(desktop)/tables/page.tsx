@@ -9,7 +9,7 @@ export default function Page() {
   const maxCol = Math.max(0, ...tableInfos.map((t) => t.gridCol));
 
   return (
-    <main className="bg-dim-charcoal min-h-screen p-10 flex justify-center">
+    <main className="bg-gray min-h-screen p-10 flex justify-center">
       <div
         className="grid"
         style={{

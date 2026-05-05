@@ -151,24 +151,28 @@
   --color-ring: oklch(0.556 0 0);
 
   /* 내가 직접 만든 변수들 */
+
   /* 색상 (color- prefix) */
   /* 그레이 계열 (미입금 및 비활성 UI용) */
   --color-charcoal: oklch(0.35 0.02 250); /* 어두운 배경 */
-  --color-dim-charcoal: oklch(0.45 0.02 250); /* 어두운 버튼/요소 */
+  --color-gray: oklch(0.45 0.02 250); /* 어두운 버튼/요소 */
   --color-silver: oklch(0.85 0.01 250); /* 어두운 배경 위 텍스트 */
 
   /* 화이트/블랙 계열 (표준 UI용) */
   --color-white: oklch(0.98 0.005 250); /* 기본 행 배경 */
   --color-black: oklch(0.25 0.01 250); /* 기본 본문 텍스트 */
-
-  /* 포인트/강조 계열 */
-  --color-blue: oklch(0.55 0.15 250); /* 입금 완료 강조 */
-  --color-red: oklch(0.7 0.12 20); /* 미입금 경고/강조 */
+  --color-light-gray: oklch(0.9 0 0); /* border 색 */
+  --color-ghost-white: oklch(0.985 0 0); /* 드롭다운 배경색 */
+  --color-pale-gray: oklch(0.96 0 0); /* 비활성화된 버튼 배경색 */
 
   /* 그린 계열 (완료 및 성공 UI용) */
   --color-light-green: oklch(0.93 0.08 145); /* 완료 배경 */
   --color-green: oklch(0.35 0.1 145); /* 완료 텍스트/버튼 */
   --color-moss-green: oklch(0.85 0.12 145); /* 완료 상태 보조 요소 */
+
+  /* 포인트/강조 계열 */
+  --color-blue: oklch(0.55 0.15 250); /* 입금 완료 강조 */
+  --color-red: oklch(0.7 0.12 20); /* 미입금 경고/강조 */
 
   /* 길이 */
   --spacing-nav-bar-height: calc(var(--spacing) * 12);

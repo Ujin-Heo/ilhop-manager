@@ -58,7 +58,7 @@ export default function ServingCard({ orderProp }: ServingCardProp) {
               "px-3 py-3 rounded-lg text-left text-sm font-semibold border transition-all",
               item.isServed
                 ? "bg-moss-green text-green border-green"
-                : "bg-white text-black border-dim-charcoal shadow-sm",
+                : "bg-white text-black border-gray shadow-sm",
             )}
           >
             <div className="flex justify-between items-center h-full gap-1">
