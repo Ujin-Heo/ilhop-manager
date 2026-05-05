@@ -1,4 +1,4 @@
-import ServingList from "@/components/admin/serving-list";
+import ServingCard from "@/components/admin/serving-card";
 import { ordersData } from "@/lib/placeholder-data";
 
 export default function Page() {
@@ -10,7 +10,16 @@ export default function Page() {
           터치하여 서빙 완료 표시
         </p>
       </header>
-      <ServingList orders={ordersData} />
+      <ul className="w-full space-y-4 p-4">
+        {ordersData.map((order, orderIdx) => {
+          return (
+            <ServingCard
+              key={`${orderIdx}-${order.orderId}`}
+              orderProp={order}
+            />
+          );
+        })}
+      </ul>
     </main>
   );
 }
