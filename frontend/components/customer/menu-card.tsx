@@ -2,23 +2,20 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Plus, Minus } from "lucide-react";
 import { MenuResponse } from "@/lib/definitions";
 import { formatCurrency, cn } from "@/lib/utils";
+import QuantitySelector from "@/components/customer/quantity-selector";
 
 interface MenuCardProps {
   menu: MenuResponse;
 }
 
 export default function MenuCard({ menu }: MenuCardProps) {
-  const [quantity, setQuantity] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string>(
     menu.options && menu.options.length > 0 ? menu.options[0] : "",
   );
 
-  const incrementQuantity = () => setQuantity((prev) => prev + 1);
-  const decrementQuantity = () =>
-    setQuantity((prev) => (prev > 0 ? prev - 1 : 0));
+  const [quantity, setQuantity] = useState(0);
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-sepia/10 bg-white/80 p-4 shadow-md gap-4">
@@ -67,25 +64,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
 
       <div className="flex items-center justify-between gap-4 pt-2">
         {/* 5. Quantity Selector (- number +) */}
-        <div className="flex items-center gap-1 rounded-full border border-sepia/20 p-1">
-          <button
-            onClick={decrementQuantity}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-sepia"
-            aria-label="Decrease quantity"
-          >
-            <Minus size={18} />
-          </button>
-          <span className="w-8 text-center text-base font-bold text-deep-brown">
-            {quantity}
-          </span>
-          <button
-            onClick={incrementQuantity}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-sepia"
-            aria-label="Increase quantity"
-          >
-            <Plus size={18} />
-          </button>
-        </div>
+        <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
 
         {/* 6. "담기" Button */}
         <button
