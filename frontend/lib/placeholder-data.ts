@@ -1,5 +1,4 @@
-import { Menu } from "radix-ui/internal";
-import { TableStatus, OrderDetail, MenuResponse } from "./definitions";
+import { TableStatus, OrderDetail, MenuResponse, OrderSummaryResponse } from "./definitions";
 
 export const tableInfos: TableStatus[] = [
   {
@@ -130,3 +129,27 @@ export const menuData: MenuResponse[] = [
     ]
   }
 ]
+
+export const orderHistory: OrderSummaryResponse = {
+  totalAmount: 26000,
+  orderItems: [
+    {
+      "menuName": "치킨 가라아게",
+      "totalQuantity": 1,
+      "unitPrice": 10000,
+      "selectedOption": null
+    },
+    {
+      "menuName": "소주",
+      "totalQuantity": 2,
+      "unitPrice": 5000,
+      "selectedOption": "참이슬"
+    },
+    {
+      "menuName": "좋은토닉",
+      "totalQuantity": 1,
+      "unitPrice": 6000,
+      "selectedOption": "살구맛"
+    }
+  ]
+}
