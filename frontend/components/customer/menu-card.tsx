@@ -5,17 +5,59 @@ import { useState } from "react";
 import { MenuResponse } from "@/lib/definitions";
 import { formatCurrency, cn } from "@/lib/utils";
 import QuantitySelector from "@/components/customer/quantity-selector";
+import { useCart } from "@/lib/contexts/cart-context";
 
 interface MenuCardProps {
   menu: MenuResponse;
 }
 
 export default function MenuCard({ menu }: MenuCardProps) {
-  const [selectedOption, setSelectedOption] = useState<string>(
-    menu.options && menu.options.length > 0 ? menu.options[0] : "",
-  );
+  const { cart, setCart } = useCart();
+  const defaultOption =
+    menu.options && menu.options.length > 0 ? menu.options[0] : "";
 
+  const [selectedOption, setSelectedOption] = useState<string>(defaultOption);
   const [quantity, setQuantity] = useState(0);
+
+  const handleAddToCart = () => {
+    if (quantity <= 0) return;
+
+    const newItem = {
+      menuName: menu.menuName,
+      totalQuantity: quantity,
+      unitPrice: menu.price,
+      selectedOption: selectedOption || null,
+    };
+
+    setCart((prev) => {
+      const existingItemIndex = prev.orderItems.findIndex(
+        (item) =>
+          item.menuName === newItem.menuName &&
+          item.selectedOption === newItem.selectedOption,
+      );
+
+      let newOrderItems = [...prev.orderItems];
+
+      if (existingItemIndex > -1) {
+        newOrderItems[existingItemIndex] = {
+          ...newOrderItems[existingItemIndex],
+          totalQuantity:
+            newOrderItems[existingItemIndex].totalQuantity + quantity,
+        };
+      } else {
+        newOrderItems.push(newItem);
+      }
+
+      return {
+        totalAmount: prev.totalAmount + menu.price * quantity,
+        orderItems: newOrderItems,
+      };
+    });
+
+    // Reset state
+    setQuantity(0);
+    setSelectedOption(defaultOption);
+  };
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-sepia/10 bg-white/80 p-4 shadow-md gap-4">
@@ -72,6 +114,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
 
         {/* 6. "담기" Button */}
         <button
+          onClick={handleAddToCart}
           className={cn(
             "flex-1 rounded-full py-3 text-sm font-bold transition-all active:scale-95",
             quantity > 0

@@ -1,16 +1,68 @@
 "use client";
 
-import { useState } from "react";
 import { OrderItemSummaryResponse } from "@/lib/definitions";
 import { formatCurrency, cn } from "@/lib/utils";
 import QuantitySelector from "@/components/customer/quantity-selector";
+import { useCart } from "@/lib/contexts/cart-context";
 
 interface CartItemProps {
   item: OrderItemSummaryResponse;
 }
 
 export default function CartItem({ item }: CartItemProps) {
-  const [quantity, setQuantity] = useState(0);
+  const { setCart } = useCart();
+
+  const handleUpdateQuantity = (
+    newQuantity: number | ((prev: number) => number),
+  ) => {
+    setCart((prev) => {
+      const updatedItems = prev.orderItems.map((orderItem) => {
+        if (
+          orderItem.menuName === item.menuName &&
+          orderItem.selectedOption === item.selectedOption
+        ) {
+          const quantity =
+            typeof newQuantity === "function"
+              ? newQuantity(orderItem.totalQuantity) // e.g.) const newQuantity = (prev) => prev + 1;
+              : newQuantity;
+          return { ...orderItem, totalQuantity: Math.max(1, quantity) };
+        }
+        return orderItem;
+      });
+
+      const newTotalAmount = updatedItems.reduce(
+        (acc, curr) => acc + curr.unitPrice * curr.totalQuantity,
+        0,
+      );
+
+      return {
+        totalAmount: newTotalAmount,
+        orderItems: updatedItems,
+      };
+    });
+  };
+
+  const handleDelete = () => {
+    setCart((prev) => {
+      const updatedItems = prev.orderItems.filter(
+        (orderItem) =>
+          !(
+            orderItem.menuName === item.menuName &&
+            orderItem.selectedOption === item.selectedOption
+          ),
+      );
+
+      const newTotalAmount = updatedItems.reduce(
+        (acc, curr) => acc + curr.unitPrice * curr.totalQuantity,
+        0,
+      );
+
+      return {
+        totalAmount: newTotalAmount,
+        orderItems: updatedItems,
+      };
+    });
+  };
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-sepia/10 bg-white/80 px-4 py-3 shadow-md">
@@ -34,14 +86,15 @@ export default function CartItem({ item }: CartItemProps) {
 
         {/* 3. Quantity Selector (- number +) */}
         <QuantitySelector
-          quantity={quantity}
+          quantity={item.totalQuantity}
           minQuantity={1}
-          setQuantity={setQuantity}
+          setQuantity={handleUpdateQuantity}
           className="scale-[0.8]"
         />
 
         {/* 4. "삭제" Button */}
         <button
+          onClick={handleDelete}
           className={cn(
             "w-[20%] rounded-full py-2 text-xs font-bold transition-all active:scale-95 bg-cinnamon text-white",
           )}

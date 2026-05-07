@@ -1,9 +1,11 @@
+"use client";
+
 import React, { use } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
-import { orderHistory } from "@/lib/placeholder-data";
 import CartItem from "@/components/customer/cart-item";
 import { formatCurrency } from "@/lib/utils";
+import { useCart } from "@/lib/contexts/cart-context";
 
 export default function Page({
   params,
@@ -11,13 +13,14 @@ export default function Page({
   params: Promise<{ tableNum: string }>;
 }) {
   const { tableNum } = use(params);
-  const items = orderHistory.orderItems;
-  const totalAmount = orderHistory.totalAmount;
+  const { cart } = useCart();
+  const items = cart.orderItems;
+  const totalAmount = cart.totalAmount;
 
   return (
     <main className="flex-1 space-y-8 px-6 pt-6 pb-24">
       <header className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-deep-brown">주문 내역</h2>
+        <h2 className="text-xl font-bold text-deep-brown">장바구니</h2>
         <Link
           href={`/order/${tableNum}`}
           className="flex items-center gap-1.5 rounded-full bg-deep-brown px-4 py-2 text-lg font-bold text-white transition-all active:scale-95"
@@ -28,11 +31,17 @@ export default function Page({
       </header>
 
       <ul className="grid grid-cols-1 gap-2">
-        {items.map((item, itemIdx) => (
-          <li key={`${itemIdx}-${item.menuName}`}>
-            <CartItem item={item} />
-          </li>
-        ))}
+        {items.length > 0 ? (
+          items.map((item, itemIdx) => (
+            <li key={`${itemIdx}-${item.menuName}-${item.selectedOption}`}>
+              <CartItem item={item} />
+            </li>
+          ))
+        ) : (
+          <p className="text-center py-20 text-sepia/60 font-medium">
+            장바구니가 비어 있습니다.
+          </p>
+        )}
       </ul>
 
       <footer className="flex flex-col gap-4 pr-3">
@@ -50,7 +59,10 @@ export default function Page({
           >
             닫기
           </Link>
-          <button className="flex-3 p-4 rounded-xl bg-cinnamon text-white text-xl font-semibold transition-all active:scale-95">
+          <button
+            disabled={items.length === 0}
+            className="flex-3 p-4 rounded-xl bg-cinnamon text-white text-xl font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             주문하기
           </button>
         </div>
