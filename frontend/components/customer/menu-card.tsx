@@ -64,7 +64,11 @@ export default function MenuCard({ menu }: MenuCardProps) {
 
       <div className="flex items-center justify-between gap-4 pt-2">
         {/* 5. Quantity Selector (- number +) */}
-        <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
+        <QuantitySelector
+          quantity={quantity}
+          minQuantity={0}
+          setQuantity={setQuantity}
+        />
 
         {/* 6. "담기" Button */}
         <button

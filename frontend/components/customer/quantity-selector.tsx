@@ -1,23 +1,33 @@
 "use client";
 
 import { Plus, Minus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface QuantitySelectorProp {
   quantity: number;
+  minQuantity: number;
   setQuantity: (newQuantity: number | ((prev: number) => number)) => void;
+  className?: string;
 }
 
 export default function QuantitySelector({
   quantity,
+  minQuantity,
   setQuantity,
+  className,
 }: QuantitySelectorProp) {
   const incrementQuantity = () => setQuantity((prev) => prev + 1);
 
   const decrementQuantity = () =>
-    setQuantity((prev) => (prev > 0 ? prev - 1 : 0));
+    setQuantity((prev) => (prev > minQuantity ? prev - 1 : minQuantity));
 
   return (
-    <div className="flex items-center gap-1 rounded-full border border-sepia/20 p-1">
+    <div
+      className={cn(
+        "flex items-center gap-1 rounded-full border border-sepia/20 p-1",
+        className,
+      )}
+    >
       <button
         onClick={decrementQuantity}
         className="flex h-8 w-8 items-center justify-center rounded-full text-sepia"
