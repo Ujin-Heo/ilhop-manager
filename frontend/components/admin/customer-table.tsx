@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { cn, formatEntryTime, calculateRemainingTime } from "@/lib/utils";
-import { CustomerBrief } from "@/lib/definitions";
+import { CustomerBrief, TableStatus } from "@/lib/definitions";
+import { Plus, Trash2, X } from "lucide-react";
+import { createTable } from "@/lib/api/tables";
 
 /**
  * CustomerTable Root Component
@@ -16,7 +18,7 @@ function CustomerTable({ className, ordered = false, ...props }: TableProps) {
     <div
       data-ordered={ordered}
       className={cn(
-        "group/ct flex w-34 h-30 p-2 flex-col justify-between items-center shrink-0 rounded-md bg-white text-med-gray transition-all duration-200 cursor-pointer select-none border border-transparent hover:shadow-md",
+        "group/ct relative flex w-34 h-30 p-2 flex-col justify-between items-center shrink-0 rounded-md bg-white text-med-gray transition-all duration-200 cursor-pointer select-none border border-transparent hover:shadow-md",
         "data-[ordered=true]:bg-blue data-[ordered=true]:text-white",
         className,
       )}
@@ -161,10 +163,13 @@ function CustomerTableAction({
  * Main Composed Component
  */
 interface CustomerTableMainProps {
+  tableId?: string;
   tableNum: number;
   currentCustomer?: CustomerBrief | null;
   onClear?: () => void;
   onClick?: () => void;
+  onDelete?: () => void;
+  isEditing?: boolean;
   className?: string;
 }
 
@@ -173,6 +178,8 @@ function CustomerTableMain({
   currentCustomer,
   onClear,
   onClick,
+  onDelete,
+  isEditing = false,
   className,
 }: CustomerTableMainProps) {
   const isOrdered = !!currentCustomer;
@@ -181,7 +188,11 @@ function CustomerTableMain({
   const remainingTime = rawEntryTime ? calculateRemainingTime(rawEntryTime) : 0;
 
   return (
-    <CustomerTable className={className} ordered={isOrdered} onClick={onClick}>
+    <CustomerTable
+      className={cn(className, isEditing && "cursor-default hover:shadow-none")}
+      ordered={isOrdered}
+      onClick={isEditing ? undefined : onClick}
+    >
       <CustomerTableHeader>
         <CustomerTableNumber>{tableNum}</CustomerTableNumber>
         {isOrdered && (
@@ -197,7 +208,7 @@ function CustomerTableMain({
         </CustomerTableContent>
       )}
 
-      {isOrdered && (
+      {isOrdered && !isEditing && (
         <CustomerTableFooter>
           <CustomerTableAction
             onClick={(e) => {
@@ -209,26 +220,143 @@ function CustomerTableMain({
           </CustomerTableAction>
         </CustomerTableFooter>
       )}
+
+      {isEditing && !isOrdered && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/5 rounded-md">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.();
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 bg-white border border-red-200 text-red-500 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors shadow-sm"
+          >
+            <Trash2 size={14} />
+            테이블 삭제
+          </button>
+        </div>
+      )}
     </CustomerTable>
   );
 }
 
-function CustomerTablePlaceholder() {
-  let setTableInfo = false;
+function CustomerTableSetInfo({
+  gridRow,
+  gridCol,
+  onCancel,
+  onCreated,
+}: {
+  gridRow: number;
+  gridCol: number;
+  onCancel: () => void;
+  onCreated: (newTable: TableStatus) => void;
+}) {
+  const [tableNum, setTableNum] = React.useState<string>("");
+
+  const handleSubmit = async (e: React.SubmitEvent) => {
+    e.preventDefault();
+    const num = parseInt(tableNum);
+
+    if (isNaN(num) || num < 1) {
+      alert("1 이상의 숫자를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const newTable = await createTable({
+        tableNum: num,
+        gridRow,
+        gridCol,
+      });
+      onCreated(newTable);
+    } catch (error: any) {
+      alert(error.message || "테이블 생성에 실패했습니다.");
+    }
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="relative flex h-30 w-34 shrink-0 flex-col items-center justify-between rounded-md border border-blue bg-white p-2 shadow-sm"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={onCancel}
+        className="absolute top-1 right-1 text-med-gray transition-colors hover:text-black"
+      >
+        <X size={16} />
+      </button>
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-1">
+        <label className="text-med-gray text-xs font-semibold">
+          테이블 번호 입력
+        </label>
+        <input
+          autoFocus
+          type="number"
+          min="1"
+          step="1"
+          value={tableNum}
+          onChange={(e) => setTableNum(e.target.value)}
+          className="w-20 border-b border-silver text-center text-xl font-bold outline-none focus:border-blue [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
+      </div>
+
+      <CustomerTableFooter>
+        <CustomerTableAction type="submit" className="bg-blue hover:bg-blue/80">
+          테이블 만들기
+        </CustomerTableAction>
+      </CustomerTableFooter>
+    </form>
+  );
+}
+
+interface CustomerTablePlaceholderProps {
+  gridRow: number;
+  gridCol: number;
+  isEditing?: boolean;
+  onCreated?: (newTable: TableStatus) => void;
+}
+
+function CustomerTablePlaceholder({
+  gridRow,
+  gridCol,
+  isEditing = false,
+  onCreated,
+}: CustomerTablePlaceholderProps) {
+  const [isSetting, setIsSetting] = React.useState(false);
+
+  if (isSetting && onCreated) {
+    return (
+      <CustomerTableSetInfo
+        gridRow={gridRow}
+        gridCol={gridCol}
+        onCancel={() => setIsSetting(false)}
+        onCreated={(newTable) => {
+          setIsSetting(false);
+          onCreated(newTable);
+        }}
+      />
+    );
+  }
 
   return (
     <div
-      className="w-34 h-30 p-2 flex justify-center items-center shrink-0 rounded-md bg-transparent text-black"
-      onClick={() => (setTableInfo = !setTableInfo)}
+      className={cn(
+        "flex h-30 w-34 shrink-0 items-center justify-center rounded-md transition-all duration-200",
+        isEditing
+          ? "cursor-pointer border border-dashed border-silver bg-white/40 hover:border-med-gray hover:bg-white/60"
+          : "bg-transparent",
+      )}
+      onClick={() => isEditing && setIsSetting(true)}
     >
-      {setTableInfo && (
-        <form>
-          <input placeholder="테이블 번호 입력"></input>
-          <button>테이블 만들기</button>
-        </form>
+      {isEditing && (
+        <div className="rounded-full border border-silver bg-white p-2 text-med-gray shadow-sm">
+          <Plus size={20} />
+        </div>
       )}
     </div>
   );
 }
 
-export { CustomerTableMain, CustomerTablePlaceholder };
+export { CustomerTableMain, CustomerTablePlaceholder, CustomerTableSetInfo };
