@@ -1,7 +1,9 @@
 import ServingCard from "@/components/admin/serving-card";
-import { ordersData } from "@/lib/placeholder-data";
+import { getOrders } from "@/lib/api/orders";
 
-export default function Page() {
+export default async function Page() {
+  const ordersData = await getOrders(true); // Only fetch paid orders for serving
+
   return (
     <main className="min-h-screen bg-gray-50 pb-20">
       <header className="sticky top-0 z-10 bg-white px-4 py-4 shadow-sm">
@@ -11,10 +13,10 @@ export default function Page() {
         </p>
       </header>
       <ul className="w-full space-y-4 p-4">
-        {ordersData.map((order, orderIdx) => {
+        {ordersData.map((order) => {
           return (
             <ServingCard
-              key={`${orderIdx}-${order.orderId}`}
+              key={order.orderId}
               orderProp={order}
             />
           );

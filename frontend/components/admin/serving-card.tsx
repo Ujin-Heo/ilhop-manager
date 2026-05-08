@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatOrderTime, cn } from "@/lib/utils";
 import { OrderDetail } from "@/lib/definitions";
+import { updateOrderItemServedStatus } from "@/lib/api/order-items";
 
 interface ServingCardProp {
   orderProp: OrderDetail;
@@ -17,16 +18,29 @@ export default function ServingCard({ orderProp }: ServingCardProp) {
     ? "bg-light-green text-green" // 모든 메뉴 서빙 완료 시
     : "bg-white text-black"; // 서빙 미완료 시
 
-  const toggleItemServed = (itemIndex: number) => {
-    if (!order.items) return;
+  const toggleItemServed = async (itemIndex: number) => {
+    if (!order.items || !order.items[itemIndex]) return;
 
-    const newItems = [...order.items];
-    if (newItems[itemIndex]) {
+    const item = order.items[itemIndex];
+    const newIsServed = !item.isServed;
+
+    try {
+      await updateOrderItemServedStatus(
+        order.orderId,
+        item.menuId,
+        { isServed: newIsServed },
+        item.selectedOption,
+      );
+
+      const newItems = [...order.items];
       newItems[itemIndex] = {
-        ...newItems[itemIndex],
-        isServed: !newItems[itemIndex].isServed,
+        ...item,
+        isServed: newIsServed,
       };
       setOrder({ ...order, items: newItems });
+    } catch (error) {
+      console.error(error);
+      alert("서빙 상태 업데이트에 실패했습니다.");
     }
   };
 
