@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.patch(
-    "/order-items/{order_id}/{memu_id}",
+    "/order-items/{order_id}/{menu_id}",
     operation_id="update_order_item_served_status",
     response_model=OrderItemServedUpdateResponse,  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,

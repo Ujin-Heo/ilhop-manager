@@ -125,11 +125,13 @@ export interface OrderItemServedUpdateResponse {
 }
 
 export interface OrderItemBrief {
+  menuId: UUID;
   menuName: string;
   quantity: number;
   selectedOption: string | null;
   isServed: boolean;
 }
+
 
 export interface OrderItemSummaryResponse {
   menuName: string;

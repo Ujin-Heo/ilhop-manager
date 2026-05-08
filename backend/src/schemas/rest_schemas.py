@@ -245,6 +245,7 @@ class OrderItemServedUpdateResponse(BaseSchema):
 
 
 class OrderItemBrief(BaseSchema):
+    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
     menu_name: Annotated[str, Field(examples=["치킨 가라아게"])]
     quantity: Annotated[int, Field(ge=1, examples=[2])]
     selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None

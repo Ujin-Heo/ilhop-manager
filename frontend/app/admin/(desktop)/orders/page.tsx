@@ -1,7 +1,9 @@
 import OrdersTable from "@/components/admin/orders-table";
-import { ordersData } from "@/lib/placeholder-data";
+import { getOrders } from "@/lib/api/orders";
 
-export default function Page() {
+export default async function Page() {
+  const ordersData = await getOrders();
+
   return (
     <main className="p-4 bg-white">
       <section className="border border-silver rounded-md overflow-hidden bg-white">

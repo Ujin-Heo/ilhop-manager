@@ -343,6 +343,7 @@ async def get_orders_from_db(
 
         order_item_briefs = [
             OrderItemBrief(
+                menu_id=item.menu_id,
                 menu_name=item.menu.menu_name,
                 quantity=item.quantity,
                 selected_option=item.selected_option,
@@ -411,6 +412,7 @@ async def add_new_order_to_db(
 
     new_order_item_briefs = [
         OrderItemBrief(
+            menu_id=item.menu_id,
             menu_name=item.menu.menu_name,
             quantity=item.quantity,
             selected_option=item.selected_option,

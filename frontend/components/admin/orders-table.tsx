@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { formatOrderTime, formatCurrency, cn } from "@/lib/utils";
 import { OrderDetail } from "@/lib/definitions";
+import { updateOrderIsPaid, updateOrderMemo } from "@/lib/api/orders";
+import { updateOrderItemServedStatus } from "@/lib/api/order-items";
 
 interface OrdersTableProps {
   orders: OrderDetail[];
@@ -12,13 +14,75 @@ export default function OrdersTable({
   orders: initialOrders,
 }: OrdersTableProps) {
   const [orders, setOrders] = useState<OrderDetail[]>(initialOrders);
+  const [editingMemoOrderId, setEditingMemoOrderId] = useState<string | null>(null);
+  const [editingMemoValue, setEditingMemoValue] = useState<string>("");
 
-  const toggleItemServed = (orderIndex: number, itemIndex: number) => {
-    const newOrders = [...orders];
-    const items = newOrders[orderIndex].items;
-    if (items && items[itemIndex]) {
-      items[itemIndex].isServed = !items[itemIndex].isServed;
-      setOrders(newOrders);
+  const handleTogglePayment = async (orderId: string, currentIsPaid: boolean) => {
+    try {
+      await updateOrderIsPaid(orderId, { isPaid: !currentIsPaid });
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.orderId === orderId ? { ...order, isPaid: !currentIsPaid } : order,
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+      alert("결제 상태 업데이트에 실패했습니다.");
+    }
+  };
+
+  const handleToggleServed = async (
+    orderId: string,
+    menuId: string,
+    selectedOption: string | null,
+    currentIsServed: boolean,
+  ) => {
+    try {
+      await updateOrderItemServedStatus(orderId, menuId, { isServed: !currentIsServed }, selectedOption);
+      setOrders((prevOrders) =>
+        prevOrders.map((order) => {
+          if (order.orderId !== orderId) return order;
+          return {
+            ...order,
+            items: order.items?.map((item) =>
+              item.menuId === menuId && item.selectedOption === selectedOption
+                ? { ...item, isServed: !currentIsServed }
+                : item,
+            ) || null,
+          };
+        }),
+      );
+    } catch (error) {
+      console.error(error);
+      alert("서빙 상태 업데이트에 실패했습니다.");
+    }
+  };
+
+  const startEditingMemo = (orderId: string, currentMemo: string | null) => {
+    setEditingMemoOrderId(orderId);
+    setEditingMemoValue(currentMemo || "");
+  };
+
+  const saveMemo = async (orderId: string) => {
+    try {
+      await updateOrderMemo(orderId, { memo: editingMemoValue });
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.orderId === orderId ? { ...order, memo: editingMemoValue } : order
+        )
+      );
+      setEditingMemoOrderId(null);
+    } catch (error) {
+      console.error(error);
+      alert("메모 업데이트에 실패했습니다.");
+    }
+  };
+
+  const handleMemoKeyDown = (e: React.KeyboardEvent, orderId: string) => {
+    if (e.key === "Enter") {
+      saveMemo(orderId);
+    } else if (e.key === "Escape") {
+      setEditingMemoOrderId(null);
     }
   };
 
@@ -59,7 +123,7 @@ export default function OrdersTable({
                     {items.map((item, itemIdx) => (
                       <button
                         key={`${orderIdx}-${itemIdx}-${item.menuName}-${item.selectedOption}`}
-                        onClick={() => toggleItemServed(orderIdx, itemIdx)}
+                        onClick={() => handleToggleServed(order.orderId, item.menuId, item.selectedOption, item.isServed)}
                         disabled={!order.isPaid}
                         className={cn(
                           "px-2 py-1 rounded text-xs border transition-colors",
@@ -83,13 +147,36 @@ export default function OrdersTable({
                 <td className="p-4">{formatCurrency(order.totalPrice)}</td>
                 <td className="p-4">{order.depositor || ""}</td>
                 <td className="p-4">
-                  {order.isPaid ? (
-                    <span className="text-blue font-semibold">입금 완료</span>
+                  <button
+                    onClick={() => handleTogglePayment(order.orderId, order.isPaid)}
+                    className="hover:underline focus:outline-none"
+                  >
+                    {order.isPaid ? (
+                      <span className="text-blue font-semibold">입금 완료</span>
+                    ) : (
+                      <span className="text-red font-semibold">미입금</span>
+                    )}
+                  </button>
+                </td>
+                <td 
+                  className="p-4 text-xs cursor-pointer min-w-[150px]"
+                  onClick={() => startEditingMemo(order.orderId, order.memo)}
+                >
+                  {editingMemoOrderId === order.orderId ? (
+                    <input
+                      autoFocus
+                      className="w-full p-1 border rounded text-black bg-white"
+                      value={editingMemoValue}
+                      onChange={(e) => setEditingMemoValue(e.target.value)}
+                      onBlur={() => saveMemo(order.orderId)}
+                      onKeyDown={(e) => handleMemoKeyDown(e, order.orderId)}
+                    />
                   ) : (
-                    <span className="text-red font-semibold">미입금</span>
+                    <span className="block w-full min-h-[1.5em]">
+                      {order.memo || ""}
+                    </span>
                   )}
                 </td>
-                <td className="p-4 text-xs">{order.memo || ""}</td>
               </tr>
             );
           })}
