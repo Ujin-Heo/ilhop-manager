@@ -42,7 +42,7 @@ export default function Page() {
     }
   };
 
-  const maxRow = Math.max(0, ...tableInfos.map((t) => t.gridRow), 4); // Default min 5 rows
+  const maxRow = Math.max(0, ...tableInfos.map((t) => t.gridRow), 5); // Default min 5 rows
   const maxCol = Math.max(0, ...tableInfos.map((t) => t.gridCol), 8); // Default min 8 cols
 
   if (isLoading) {
@@ -60,7 +60,7 @@ export default function Page() {
         style={{
           gridTemplateRows: `repeat(${maxRow}, min-content)`,
           gridTemplateColumns: `repeat(${maxCol}, min-content)`,
-          rowGap: "3.5rem",
+          rowGap: "2.5rem",
           columnGap: "1rem",
         }}
       >
@@ -78,6 +78,24 @@ export default function Page() {
                 currentCustomer={table.currentCustomer}
                 isEditing={isEditing}
                 onDelete={() => handleDeleteTable(table.tableId)}
+                onCustomerCreated={(newCustomer) => {
+                  setTableInfos((prev) =>
+                    prev.map((t) =>
+                      t.tableId === table.tableId
+                        ? { ...t, currentCustomer: newCustomer }
+                        : t,
+                    ),
+                  );
+                }}
+                onCustomerCleared={() => {
+                  setTableInfos((prev) =>
+                    prev.map((t) =>
+                      t.tableId === table.tableId
+                        ? { ...t, currentCustomer: null }
+                        : t,
+                    ),
+                  );
+                }}
               />
             ) : (
               <CustomerTablePlaceholder

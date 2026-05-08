@@ -3,8 +3,12 @@
 import * as React from "react";
 import { cn, formatEntryTime, calculateRemainingTime } from "@/lib/utils";
 import { CustomerBrief, TableStatus } from "@/lib/definitions";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, UserPlus } from "lucide-react";
 import { createTable } from "@/lib/api/tables";
+import {
+  createCustomer,
+  updateCustomerActiveStatus,
+} from "@/lib/api/customers";
 
 /**
  * CustomerTable Root Component
@@ -166,7 +170,8 @@ interface CustomerTableMainProps {
   tableId?: string;
   tableNum: number;
   currentCustomer?: CustomerBrief | null;
-  onClear?: () => void;
+  onCustomerCleared?: () => void;
+  onCustomerCreated?: (customer: CustomerBrief) => void;
   onClick?: () => void;
   onDelete?: () => void;
   isEditing?: boolean;
@@ -176,22 +181,56 @@ interface CustomerTableMainProps {
 function CustomerTableMain({
   tableNum,
   currentCustomer,
-  onClear,
+  onCustomerCleared,
+  onCustomerCreated,
   onClick,
   onDelete,
   isEditing = false,
   className,
 }: CustomerTableMainProps) {
+  const [isAddingCustomer, setIsAddingCustomer] = React.useState(false);
   const isOrdered = !!currentCustomer;
   const rawEntryTime = currentCustomer?.entryTime;
   const formattedEntryTime = rawEntryTime ? formatEntryTime(rawEntryTime) : "";
   const remainingTime = rawEntryTime ? calculateRemainingTime(rawEntryTime) : 0;
 
+  const handleAddCustomer = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const newCustomer = await createCustomer({ tableNum });
+      setIsAddingCustomer(false);
+      onCustomerCreated?.(newCustomer);
+    } catch (error: any) {
+      alert(error.message || "손님 추가에 실패했습니다.");
+    }
+  };
+
+  const handleClearTable = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentCustomer) return;
+    if (!confirm("정말 이 테이블을 비우시겠습니까? (퇴장 처리)")) return;
+
+    try {
+      await updateCustomerActiveStatus(currentCustomer.customerId, false);
+      onCustomerCleared?.();
+    } catch (error: any) {
+      alert(error.message || "테이블 비우기에 실패했습니다.");
+    }
+  };
+
+  const handleTableClick = () => {
+    if (isEditing) return;
+    if (!isOrdered) {
+      setIsAddingCustomer(!isAddingCustomer);
+    }
+    onClick?.();
+  };
+
   return (
     <CustomerTable
       className={cn(className, isEditing && "cursor-default hover:shadow-none")}
       ordered={isOrdered}
-      onClick={isEditing ? undefined : onClick}
+      onClick={handleTableClick}
     >
       <CustomerTableHeader>
         <CustomerTableNumber>{tableNum}</CustomerTableNumber>
@@ -200,22 +239,30 @@ function CustomerTableMain({
         )}
       </CustomerTableHeader>
 
-      {isOrdered && (
+      {isOrdered ? (
         <CustomerTableContent>
           <div className="w-1/6 shrink-0" /> {/* Spacer */}
           <CustomerTableValue>{remainingTime}분</CustomerTableValue>
           <CustomerTableUnit>남음</CustomerTableUnit>
         </CustomerTableContent>
+      ) : (
+        !isEditing &&
+        isAddingCustomer && (
+          <div className="flex flex-1 w-full items-center justify-center">
+            <CustomerTableAction
+              onClick={handleAddCustomer}
+              className="flex items-center justify-center gap-1 border border-silver bg-white/20 py-2 font-bold text-med-gray hover:bg-white/40"
+            >
+              <UserPlus size={16} />
+              <span>손님 추가</span>
+            </CustomerTableAction>
+          </div>
+        )
       )}
 
       {isOrdered && !isEditing && (
         <CustomerTableFooter>
-          <CustomerTableAction
-            onClick={(e) => {
-              e.stopPropagation();
-              onClear?.();
-            }}
-          >
+          <CustomerTableAction onClick={handleClearTable}>
             테이블 비우기
           </CustomerTableAction>
         </CustomerTableFooter>
@@ -228,7 +275,7 @@ function CustomerTableMain({
               e.stopPropagation();
               onDelete?.();
             }}
-            className="flex items-center gap-1 px-3 py-1.5 bg-white border border-red-200 text-red-500 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors shadow-sm"
+            className="flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-bold text-red-500 shadow-sm transition-colors hover:bg-red-50"
           >
             <Trash2 size={14} />
             테이블 삭제
@@ -252,7 +299,7 @@ function CustomerTableSetInfo({
 }) {
   const [tableNum, setTableNum] = React.useState<string>("");
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const num = parseInt(tableNum);
 
@@ -288,7 +335,7 @@ function CustomerTableSetInfo({
       </button>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-1">
-        <label className="text-med-gray text-xs font-semibold">
+        <label className="text-med-gray text-[10px] font-bold">
           테이블 번호 입력
         </label>
         <input
