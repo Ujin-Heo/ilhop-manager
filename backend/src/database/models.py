@@ -6,6 +6,7 @@ from datetime import datetime
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Integer,
@@ -82,8 +83,10 @@ class Customer(Base):
         primary_key=True,
         server_default=text("uuid_generate_v4()"),
     )
+    # isActive=False인 Customer가 남아있는 Table을 삭제할 수 있도록 nullable=True로 설정함.
     table_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("tables.table_id", name="FK_customers_tables"), nullable=False
+        ForeignKey("tables.table_id", name="FK_customers_tables", ondelete="SET NULL"),
+        nullable=True,
     )
     entry_time: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
@@ -139,6 +142,8 @@ class Order(Base):
 
 class OrderItem(Base):
     __tablename__ = "order_items"
+
+    __table_args__ = (CheckConstraint("quantity > 0", name="check_quantity_positive"),)
 
     order_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("orders.order_id", name="FK_order_items_orders"),
