@@ -107,6 +107,7 @@ class Menu(Base):
         server_default=text("uuid_generate_v4()"),
     )
     menu_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    section: Mapped[str] = mapped_column(String(50), nullable=False)
     price: Mapped[int] = mapped_column(BigInteger, nullable=False)
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     options: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)

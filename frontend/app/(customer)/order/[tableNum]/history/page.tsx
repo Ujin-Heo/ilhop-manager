@@ -1,15 +1,18 @@
-import React, { use } from "react";
+import React from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
-import { orderHistory } from "@/lib/placeholder-data";
 import OrderHistoryTable from "@/components/customer/order-history-table";
+import { getCustomers, getCustomerOrderSummary } from "@/lib/api/customers";
 
-export default function Page({
+export default async function Page({
   params,
 }: {
   params: Promise<{ tableNum: string }>;
 }) {
-  const { tableNum } = use(params);
+  const { tableNum } = await params;
+  
+  const customer = await getCustomers(parseInt(tableNum), true);
+  const orderSummary = await getCustomerOrderSummary(customer.customerId);
 
   return (
     <main className="flex-1 space-y-8 px-6 pt-6 pb-24">
@@ -25,7 +28,7 @@ export default function Page({
       </header>
 
       <div className="p-4 pt-2 rounded-2xl border border-sepia/10 bg-white/60 shadow-sm backdrop-blur-xs">
-        <OrderHistoryTable orderSummary={orderHistory} />
+        <OrderHistoryTable orderSummary={orderSummary} />
       </div>
 
       <footer className="flex justify-center">

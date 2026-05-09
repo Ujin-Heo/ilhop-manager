@@ -102,6 +102,9 @@ class MenuCreateRequest(BaseSchema):
     menu_name: Annotated[
         str, Field(description="음식 또는 음료 이름", examples=["치킨 가라아게"])
     ]
+    section: Annotated[
+        str, Field(description="메뉴 섹션 (예: 식사, 주류)", examples=["식사"])
+    ]
     price: Annotated[int, Field(description="판매 가격 (원 단위)")]
     image_url: Annotated[
         str | None,
@@ -124,6 +127,9 @@ class MenuResponse(BaseSchema):
     menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
     menu_name: Annotated[
         str, Field(description="음식 또는 음료 이름", examples=["치킨 가라아게"])
+    ]
+    section: Annotated[
+        str, Field(description="메뉴 섹션 (예: 식사, 주류)", examples=["식사"])
     ]
     price: Annotated[int, Field(description="판매 가격 (원 단위)", examples=[15000])]
     image_url: Annotated[

@@ -763,6 +763,10 @@ components:
           type: string
           description: 음식 또는 음료 이름
           example: "치킨 가라아게"
+        section:
+          type: string
+          description: "메뉴 섹션 (예: 식사, 주류)"
+          example: "식사"
         price:
           type: integer
           format: int64
@@ -780,6 +784,7 @@ components:
           example: ["살구맛", "청포도맛", "레몬맛"]
       required:
         - menuName
+        - section
         - price
 
     MenuResponse:
@@ -793,6 +798,10 @@ components:
           type: string
           description: 음식 또는 음료 이름
           example: "치킨 가라아게"
+        section:
+          type: string
+          description: "메뉴 섹션 (예: 식사, 주류)"
+          example: "식사"
         price:
           type: integer
           format: int64
@@ -812,6 +821,7 @@ components:
       required:
         - menuId
         - menuName
+        - section
         - price
 
     OrderCreateRequest:

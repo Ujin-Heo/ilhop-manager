@@ -1,9 +1,11 @@
-import { menuData } from "@/lib/placeholder-data";
 import MenuCard from "@/components/customer/menu-card";
+import { getMenus } from "@/lib/api/menus";
 
-export default function Page() {
-  const foodItems = menuData.filter((item) => item.section === "안주류");
-  const drinkItems = menuData.filter((item) => item.section === "주류");
+export default async function Page() {
+  const menus = await getMenus();
+  
+  const foodItems = menus.filter((item) => item.section === "안주류");
+  const drinkItems = menus.filter((item) => item.section === "주류");
 
   return (
     <main className="flex-1 space-y-8 px-6 pt-6 pb-24">

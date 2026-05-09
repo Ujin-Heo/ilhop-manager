@@ -40,6 +40,7 @@ export interface CustomerBrief {
 
 export interface MenuCreateRequest {
   menuName: string;
+  section: string;
   price: number;
   imageUrl?: string | null;
   options?: string[] | null;
