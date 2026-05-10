@@ -83,7 +83,7 @@ async def create_order(
         message = OrderCreatedMessage(data=new_order_detail)
 
         # 모델의 데이터를 딕셔너리로 변환하여 전송
-        await manager.broadcast_to_admins(message.model_dump())
+        await manager.broadcast_to_admins(message.model_dump(mode="json", by_alias=True))
 
         return new_order_detail
 

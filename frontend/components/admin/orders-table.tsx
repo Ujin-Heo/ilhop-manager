@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { formatOrderTime, formatCurrency, cn } from "@/lib/utils";
 import { OrderDetail } from "@/lib/definitions";
 import { updateOrderIsPaid, updateOrderMemo } from "@/lib/api/orders";
 import { updateOrderItemServedStatus } from "@/lib/api/order-items";
+import { useWebsocket } from "@/lib/hooks/use-websocket";
 
 interface OrdersTableProps {
   orders: OrderDetail[];
@@ -16,6 +17,45 @@ export default function OrdersTable({
   const [orders, setOrders] = useState<OrderDetail[]>(initialOrders);
   const [editingMemoOrderId, setEditingMemoOrderId] = useState<string | null>(null);
   const [editingMemoValue, setEditingMemoValue] = useState<string>("");
+
+  const handleWebsocketMessage = useCallback((event: string, data: any) => {
+    switch (event) {
+      case "ITEM_SERVED_UPDATED": {
+        const { orderId, menuId, selectedOption, isServed } = data;
+        setOrders((prevOrders) =>
+          prevOrders.map((order) => {
+            if (order.orderId !== orderId) return order;
+            return {
+              ...order,
+              items: order.items?.map((item) =>
+                item.menuId === menuId && item.selectedOption === selectedOption
+                  ? { ...item, isServed }
+                  : item,
+              ) || null,
+            };
+          }),
+        );
+        break;
+      }
+      case "ORDER_CREATED": {
+        setOrders((prevOrders) => [data, ...prevOrders]);
+        break;
+      }
+      case "PAYMENT_CONFIRMED": {
+        const { orderId, isPaid } = data;
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.orderId === orderId ? { ...order, isPaid } : order,
+          ),
+        );
+        break;
+      }
+      default:
+        break;
+    }
+  }, []);
+
+  useWebsocket({ onMessage: handleWebsocketMessage });
 
   const handleTogglePayment = async (orderId: string, currentIsPaid: boolean) => {
     try {

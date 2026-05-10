@@ -50,7 +50,7 @@ async def update_order_item_served_status(
             )
         )
 
-        await manager.broadcast_to_admins(message.model_dump())
+        await manager.broadcast_to_admins(message.model_dump(mode="json", by_alias=True))
 
         return updated_order_item
 

@@ -42,12 +42,12 @@ async def confirm_payment(
 
         # Pydantic 모델을 사용하여 데이터 조립
         message = PaymentConfirmedMessage(
-            data=OrderPaymentUpdateResponse(orderId=order_id, isPaid=True)
+            data=OrderPaymentUpdateResponse(order_id=order_id, is_paid=True)
         )
 
         # 모델의 데이터를 딕셔너리로 변환하여 전송
-        await manager.send_to_customer(order_id, message.model_dump())
-        await manager.broadcast_to_admins(message.model_dump())
+        await manager.send_to_customer(order_id, message.model_dump(mode="json", by_alias=True))
+        await manager.broadcast_to_admins(message.model_dump(mode="json", by_alias=True))
 
     except NoResultFound as nrfe:
         raise HTTPException(
