@@ -22,9 +22,11 @@ CREATE TABLE "menus" (
     "menu_id"    uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     "menu_name"  varchar(50) UNIQUE NOT NULL,
     "section"    varchar(50) NOT NULL,
+    "index"      int NOT NULL,
     "price"      bigint NOT NULL, -- 원화 기준 bigint 추천
     "image_url"  text,            -- 경로 저장
-    "options"    text[]           -- ['살구맛', '청포도맛'] 등
+    "options"    text[],          -- ['살구맛', '청포도맛'] 등
+    UNIQUE("section", "index")
 );
 
 CREATE TABLE "orders" (

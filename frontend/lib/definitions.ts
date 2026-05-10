@@ -41,6 +41,7 @@ export interface CustomerBrief {
 export interface MenuCreateRequest {
   menuName: string;
   section: string;
+  index: number;
   price: number;
   imageUrl?: string | null;
   options?: string[] | null;
@@ -49,15 +50,21 @@ export interface MenuCreateRequest {
 export interface MenuUpdateRequest {
   menuName?: string;
   section?: string;
+  index?: number;
   price?: number;
   imageUrl?: string | null;
   options?: string[] | null;
+}
+
+export interface MenuIndexUpdateRequest {
+  index: number;
 }
 
 export interface MenuResponse {
   menuId: UUID;
   section: string;
   menuName: string;
+  index: number;
   price: number;
   imageUrl: string | null;
   options: string[] | null;

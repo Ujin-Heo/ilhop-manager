@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { MenuResponse, MenuUpdateRequest } from "@/lib/definitions";
-import { createMenu, updateMenu } from "@/lib/api/menus";
+import { createMenu, updateMenu, updateMenuIndex } from "@/lib/api/menus";
 
 interface NewMenuFormProps {
   onSuccess: () => void;
@@ -16,6 +16,7 @@ export default function NewMenuForm({
   const [formData, setFormData] = useState<MenuUpdateRequest>({
     menuName: "",
     section: "",
+    index: 1,
     price: 0,
     options: [],
   });
@@ -32,6 +33,7 @@ export default function NewMenuForm({
       setFormData({
         menuName: editMenu.menuName,
         section: editMenu.section,
+        index: editMenu.index,
         price: editMenu.price,
         options: editMenu.options || [],
       });
@@ -39,6 +41,7 @@ export default function NewMenuForm({
       setFormData({
         menuName: "",
         section: "",
+        index: 1,
         price: 0,
         options: [],
       });
@@ -53,11 +56,26 @@ export default function NewMenuForm({
     }
     try {
       if (editMenu) {
+        // 1. 인덱스가 변경된 경우 정렬 순서 업데이트 API 먼저 호출
+        if (formData.index !== undefined && formData.index !== editMenu.index) {
+          await updateMenuIndex(editMenu.menuId, { index: formData.index });
+        }
+
+        // 2. 나머지 정보 업데이트
+        // (index 필드가 포함되어 있어도 update_menu_in_db에서 단순 set처리하므로 
+        // 1번에서 이미 시프트가 일어났다면 문제 없음)
         await updateMenu(editMenu.menuId, formData);
         onCancelEdit?.();
       } else {
         await createMenu(formData as any);
-        setFormData({ menuName: "", section: "", price: 0, options: [] });
+        setFormData({
+          menuName: "",
+          section: "",
+          index: 1,
+          price: 0,
+          options: [],
+        });
+        setOptionsInput("");
       }
       onSuccess();
     } catch (err) {
@@ -139,6 +157,23 @@ export default function NewMenuForm({
               }
               className="p-2 border border-light-gray rounded focus:outline-none focus:border-cinnamon text-black"
               placeholder="예: 5000"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-sepia">정렬 순서</label>
+            <input
+              type="number"
+              required
+              min="1"
+              value={formData.index}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  index: parseInt(e.target.value) || 1,
+                })
+              }
+              className="p-2 border border-light-gray rounded focus:outline-none focus:border-cinnamon text-black"
+              placeholder="예: 1"
             />
           </div>
           <div className="flex flex-col gap-1">

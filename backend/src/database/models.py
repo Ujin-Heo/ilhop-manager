@@ -101,6 +101,8 @@ class Customer(Base):
 class Menu(Base):
     __tablename__ = "menus"
 
+    __table_args__ = (UniqueConstraint("section", "index", name="uq_section_index"),)
+
     menu_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -108,6 +110,7 @@ class Menu(Base):
     )
     menu_name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     section: Mapped[str] = mapped_column(String(50), nullable=False)
+    index: Mapped[int] = mapped_column(nullable=False)
     price: Mapped[int] = mapped_column(BigInteger, nullable=False)
     image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     options: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)

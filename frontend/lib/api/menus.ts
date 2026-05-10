@@ -1,5 +1,10 @@
 import { BASE_URL } from './config';
-import { MenuResponse, MenuCreateRequest, MenuUpdateRequest } from '../definitions';
+import {
+  MenuResponse,
+  MenuCreateRequest,
+  MenuUpdateRequest,
+  MenuIndexUpdateRequest,
+} from '../definitions';
 
 /**
  * 전체 메뉴 목록 조회
@@ -67,6 +72,29 @@ export async function updateMenu(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.detail || '메뉴 수정에 실패했습니다.');
+  }
+
+  return response.json();
+}
+
+/**
+ * 특정 메뉴의 정렬 순서 수정
+ */
+export async function updateMenuIndex(
+  menuId: string,
+  data: MenuIndexUpdateRequest
+): Promise<MenuResponse> {
+  const response = await fetch(`${BASE_URL}/menus/${menuId}/index`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || '정렬 순서 수정에 실패했습니다.');
   }
 
   return response.json();

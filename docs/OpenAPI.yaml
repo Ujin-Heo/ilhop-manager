@@ -822,6 +822,10 @@ components:
           type: string
           description: "메뉴 섹션 (예: 식사, 주류)"
           example: "식사"
+        index:
+          type: integer
+          description: "정렬 순서"
+          example: 1
         price:
           type: integer
           format: int64
@@ -853,6 +857,10 @@ components:
           type: string
           description: "메뉴 섹션 (예: 식사, 주류)"
           example: "식사"
+        index:
+          type: integer
+          description: "정렬 순서"
+          example: 1
         price:
           type: integer
           format: int64
@@ -885,6 +893,10 @@ components:
           type: string
           description: "메뉴 섹션 (예: 식사, 주류)"
           example: "식사"
+        index:
+          type: integer
+          description: "정렬 순서"
+          example: 1
         price:
           type: integer
           format: int64

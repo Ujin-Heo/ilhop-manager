@@ -7,9 +7,15 @@ from ..database.crud import (
     get_menus_from_db,
     add_new_menu_to_db,
     update_menu_in_db,
+    update_menu_index_in_db,
     delete_menu_from_db,
 )
-from ..schemas.rest_schemas import MenuResponse, MenuCreateRequest, MenuUpdateRequest
+from ..schemas.rest_schemas import (
+    MenuResponse,
+    MenuCreateRequest,
+    MenuUpdateRequest,
+    MenuIndexUpdateRequest,
+)
 
 router = APIRouter()
 
@@ -108,6 +114,39 @@ async def update_menu(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"[❌ 데이터 충돌] {str(ie)}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.patch(
+    "/menus/{menu_id}/index",
+    operation_id="update_menu_index",
+    response_model=MenuResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["menu"],
+    summary="메뉴 정렬 순서 수정",
+)
+async def update_menu_index(
+    menu_id: str,
+    request_data: MenuIndexUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    특정 메뉴의 정렬 순서(`index`)를 수정합니다.
+    새로운 index를 삽입할 때, 해당 index 이상의 기존 항목들을 뒤로 한 칸씩 밀어 충돌을 방지합니다.
+    """
+    try:
+        updated_menu = await update_menu_index_in_db(db, menu_id, request_data.index)
+        return updated_menu
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 메뉴를 찾을 수 없음] {str(nrfe)}",
         )
     except Exception as e:
         raise HTTPException(

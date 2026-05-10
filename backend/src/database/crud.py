@@ -1,4 +1,4 @@
-from sqlalchemy import Row, select, func
+from sqlalchemy import Row, select, func, update
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, load_only
@@ -13,12 +13,12 @@ from ..schemas.rest_schemas import (
     OrderPaymentUpdateRequest,
     MenuCreateRequest,
     MenuUpdateRequest,
+    MenuIndexUpdateRequest,
     OrderItemBrief,
     OrderDetail,
     OrderCreateRequest,
     PaymentConfirmInfo,
 )
-
 
 # ========= Table 관련 로직 ===========================================
 
@@ -268,9 +268,7 @@ async def get_customer_order_summary_from_db(
     if is_paid is not None:
         stmt = stmt.where(Order.is_paid == is_paid)
 
-    stmt = stmt.group_by(
-        OrderItem.menu_id, Menu.menu_name, OrderItem.selected_option
-    )
+    stmt = stmt.group_by(OrderItem.menu_id, Menu.menu_name, OrderItem.selected_option)
 
     result = await db.execute(stmt)
 
@@ -299,7 +297,16 @@ async def get_customer_order_summary_from_db(
 
 # ========= Menu 관련 로직 ===========================================
 async def get_menus_from_db(db: AsyncSession) -> list[Menu]:
-    stmt = select(Menu)
+    from sqlalchemy import case
+
+    stmt = select(Menu).order_by(
+        case(
+            (Menu.section == "안주류", 1),
+            (Menu.section == "주류", 2),
+            else_=3,
+        ),
+        Menu.index,
+    )
     result = await db.execute(stmt)
     menus = result.scalars().all()
 
@@ -307,7 +314,24 @@ async def get_menus_from_db(db: AsyncSession) -> list[Menu]:
 
 
 async def add_new_menu_to_db(db: AsyncSession, request_data: MenuCreateRequest) -> Menu:
+    # 1. 충돌 방지를 위해 새로운 인덱스 이상의 기존 항목들 시프트 (2단계 업데이트로 충돌 방지)
+    stmt1 = (
+        update(Menu)
+        .where(Menu.section == request_data.section, Menu.index >= request_data.index)
+        .values(index=Menu.index + 10000)
+    )
+    await db.execute(stmt1)
+
+    stmt2 = (
+        update(Menu)
+        .where(Menu.section == request_data.section, Menu.index >= 10000)
+        .values(index=Menu.index - 9999)
+    )
+    await db.execute(stmt2)
+
+    # 2. 새로운 메뉴 객체 생성
     new_menu = Menu(**request_data.model_dump())
+
     db.add(new_menu)
     await db.commit()
     await db.refresh(new_menu)
@@ -333,6 +357,48 @@ async def update_menu_in_db(
     await db.commit()
 
     return menu_to_update
+
+
+async def update_menu_index_in_db(
+    db: AsyncSession, menu_id: str, new_index: int
+) -> Menu:
+    """
+    특정 메뉴의 정렬 순서(index)를 변경합니다.
+    변경하려는 index 이상의 값들을 가진 메뉴들의 index를 1씩 증가시켜 충돌을 방지합니다.
+    """
+    # 1. 대상 메뉴 조회
+    menu_to_move = await db.get(Menu, menu_id)
+    if not menu_to_move:
+        raise NoResultFound(f"ID가 {menu_id}인 메뉴를 찾을 수 없습니다.")
+
+    section = menu_to_move.section
+
+    # 2. 충돌 방지를 위한 기존 메뉴들 index 시프트
+    # 현재 이동할 메뉴를 먼저 0으로 치워두어 공간을 확보한 뒤, 2단계 시프트 수행
+    menu_to_move.index = 0
+    await db.flush()
+
+    stmt1 = (
+        update(Menu)
+        .where(Menu.section == section, Menu.index >= new_index)
+        .values(index=Menu.index + 10000)
+    )
+    await db.execute(stmt1)
+
+    stmt2 = (
+        update(Menu)
+        .where(Menu.section == section, Menu.index >= 10000)
+        .values(index=Menu.index - 9999)
+    )
+    await db.execute(stmt2)
+
+    # 3. 대상 메뉴의 index 업데이트
+    menu_to_move.index = new_index
+
+    await db.commit()
+    await db.refresh(menu_to_move)
+
+    return menu_to_move
 
 
 async def delete_menu_from_db(db: AsyncSession, menu_id: str) -> None:

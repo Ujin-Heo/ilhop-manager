@@ -105,6 +105,7 @@ class MenuCreateRequest(BaseSchema):
     section: Annotated[
         str, Field(description="메뉴 섹션 (예: 식사, 주류)", examples=["식사"])
     ]
+    index: Annotated[int, Field(description="정렬 순서", examples=[1])]
     price: Annotated[int, Field(description="판매 가격 (원 단위)")]
     image_url: Annotated[
         str | None,
@@ -130,6 +131,7 @@ class MenuUpdateRequest(BaseSchema):
     section: Annotated[
         str | None, Field(description="메뉴 섹션 (예: 식사, 주류)", examples=["식사"])
     ] = None
+    index: Annotated[int | None, Field(description="정렬 순서", examples=[1])] = None
     price: Annotated[int | None, Field(description="판매 가격 (원 단위)")] = None
     image_url: Annotated[
         str | None,
@@ -148,6 +150,10 @@ class MenuUpdateRequest(BaseSchema):
     ] = None
 
 
+class MenuIndexUpdateRequest(BaseSchema):
+    index: Annotated[int, Field(description="변경할 새로운 정렬 순서", examples=[1])]
+
+
 class MenuResponse(BaseSchema):
     menu_id: Annotated[
         UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
@@ -158,6 +164,7 @@ class MenuResponse(BaseSchema):
     section: Annotated[
         str, Field(description="메뉴 섹션 (예: 식사, 주류)", examples=["식사"])
     ]
+    index: Annotated[int, Field(description="정렬 순서", examples=[1])]
     price: Annotated[int, Field(description="판매 가격 (원 단위)", examples=[15000])]
     image_url: Annotated[
         str | None,
