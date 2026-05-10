@@ -10,6 +10,7 @@ export default function Page() {
   const [menus, setMenus] = useState<MenuResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editMenu, setEditMenu] = useState<MenuResponse | null>(null);
 
   const fetchMenus = async () => {
     try {
@@ -57,14 +58,22 @@ export default function Page() {
                   key={menu.menuId}
                   menu={menu}
                   onDelete={fetchMenus}
+                  onEdit={(m) => {
+                    setEditMenu(m);
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                  }}
                 />
               ))}
             </div>
           )}
         </div>
 
-        {/* 새 메뉴 추가 폼 */}
-        <NewMenuForm onSuccess={fetchMenus} />
+        {/* 새 메뉴 추가 / 수정 폼 */}
+        <NewMenuForm
+          onSuccess={fetchMenus}
+          editMenu={editMenu}
+          onCancelEdit={() => setEditMenu(null)}
+        />
       </section>
     </main>
   );

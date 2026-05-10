@@ -12,6 +12,7 @@ from ..schemas.rest_schemas import (
     OrderSummaryResponse,
     OrderPaymentUpdateRequest,
     MenuCreateRequest,
+    MenuUpdateRequest,
     OrderItemBrief,
     OrderDetail,
     OrderCreateRequest,
@@ -312,6 +313,26 @@ async def add_new_menu_to_db(db: AsyncSession, request_data: MenuCreateRequest) 
     await db.refresh(new_menu)
 
     return new_menu
+
+
+async def update_menu_in_db(
+    db: AsyncSession, menu_id: str, request_data: MenuUpdateRequest
+) -> Menu:
+    """
+    DB에서 menu_id를 가진 Menu를 찾아서 업데이트합니다.
+    """
+    menu_to_update = await db.get(Menu, menu_id)
+
+    if not menu_to_update:
+        raise NoResultFound(f"ID가 {menu_id}인 메뉴를 찾을 수 없습니다.")
+
+    update_data = request_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(menu_to_update, key, value)
+
+    await db.commit()
+
+    return menu_to_update
 
 
 async def delete_menu_from_db(db: AsyncSession, menu_id: str) -> None:

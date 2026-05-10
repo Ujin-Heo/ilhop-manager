@@ -428,6 +428,45 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /menus/{menu_id}:
+    patch:
+      tags:
+        - menu
+      summary: "메뉴 정보 수정"
+      description: |
+        특정 메뉴의 가격, 이름, 섹션 또는 옵션을 수정합니다.
+      operationId: updateMenu
+      parameters:
+        - name: menuId
+          in: path
+          description: "수정할 메뉴의 UUID"
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: "수정할 메뉴 정보"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuUpdateRequest'
+      responses:
+        '200':
+          description: "수정 성공"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuResponse'
+        '404':
+          description: "해당 메뉴를 찾을 수 없음"
+        '409':
+          description: "메뉴 이름 중복 등 데이터 충돌"
+        default:
+          description: "서버 오류"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     delete:
       tags:
         - menu
@@ -802,6 +841,33 @@ components:
         - menuName
         - section
         - price
+
+    MenuUpdateRequest:
+      type: object
+      properties:
+        menuName:
+          type: string
+          description: 음식 또는 음료 이름
+          example: "치킨 가라아게"
+        section:
+          type: string
+          description: "메뉴 섹션 (예: 식사, 주류)"
+          example: "식사"
+        price:
+          type: integer
+          format: int64
+          description: "판매 가격 (원 단위)"
+        imageUrl:
+          type: string
+          format: uri
+          description: "메뉴 사진 경로"
+          example: "https://example.com/images/chicken.jpg"
+        options:
+          type: array
+          description: "선택 가능한 옵션 (맛, 사이즈 등)"
+          items:
+            type: string
+          example: ["살구맛", "청포도맛", "레몬맛"]
 
     MenuResponse:
       type: object

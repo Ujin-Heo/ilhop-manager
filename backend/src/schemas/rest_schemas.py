@@ -123,6 +123,31 @@ class MenuCreateRequest(BaseSchema):
     ] = None
 
 
+class MenuUpdateRequest(BaseSchema):
+    menu_name: Annotated[
+        str | None, Field(description="음식 또는 음료 이름", examples=["치킨 가라아게"])
+    ] = None
+    section: Annotated[
+        str | None, Field(description="메뉴 섹션 (예: 식사, 주류)", examples=["식사"])
+    ] = None
+    price: Annotated[int | None, Field(description="판매 가격 (원 단위)")] = None
+    image_url: Annotated[
+        str | None,
+        Field(
+            description="메뉴 사진 경로",
+            pattern=URL_REGEX,
+            examples=["https://example.com/images/chicken.jpg"],
+        ),
+    ] = None
+    options: Annotated[
+        list[str] | None,
+        Field(
+            description="선택 가능한 옵션 (맛, 사이즈 등)",
+            examples=[["살구맛", "청포도맛", "레몬맛"]],
+        ),
+    ] = None
+
+
 class MenuResponse(BaseSchema):
     menu_id: Annotated[
         UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])

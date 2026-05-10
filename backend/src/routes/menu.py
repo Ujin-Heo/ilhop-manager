@@ -6,9 +6,10 @@ from ..database.models import get_db, Menu
 from ..database.crud import (
     get_menus_from_db,
     add_new_menu_to_db,
+    update_menu_in_db,
     delete_menu_from_db,
 )
-from ..schemas.rest_schemas import MenuResponse, MenuCreateRequest
+from ..schemas.rest_schemas import MenuResponse, MenuCreateRequest, MenuUpdateRequest
 
 router = APIRouter()
 
@@ -71,6 +72,44 @@ async def create_menu(
             detail=f"[❌ 잘못된 요청] {str(ve)}",
         )
     except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.patch(
+    "/menus/{menu_id}",
+    operation_id="update_menu",
+    response_model=MenuResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["menu"],
+    summary="메뉴 정보 수정",
+)
+async def update_menu(
+    menu_id: str,
+    request_data: MenuUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    특정 메뉴의 정보를 수정합니다.
+    """
+    try:
+        updated_menu = await update_menu_in_db(db, menu_id, request_data)
+        return updated_menu
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 메뉴를 찾을 수 없음] {str(nrfe)}",
+        )
+    except IntegrityError as ie:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"[❌ 데이터 충돌] {str(ie)}",
+        )
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"[⚠️ 서버 오류] {str(e)}",

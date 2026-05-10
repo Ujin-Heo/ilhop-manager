@@ -1,5 +1,5 @@
 import { BASE_URL } from './config';
-import { MenuResponse, MenuCreateRequest } from '../definitions';
+import { MenuResponse, MenuCreateRequest, MenuUpdateRequest } from '../definitions';
 
 /**
  * 전체 메뉴 목록 조회
@@ -47,4 +47,27 @@ export async function deleteMenu(menuId: string): Promise<void> {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.detail || '메뉴 삭제에 실패했습니다.');
   }
+}
+
+/**
+ * 특정 메뉴 수정
+ */
+export async function updateMenu(
+  menuId: string,
+  data: MenuUpdateRequest
+): Promise<MenuResponse> {
+  const response = await fetch(`${BASE_URL}/menus/${menuId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || '메뉴 수정에 실패했습니다.');
+  }
+
+  return response.json();
 }

@@ -46,6 +46,14 @@ export interface MenuCreateRequest {
   options?: string[] | null;
 }
 
+export interface MenuUpdateRequest {
+  menuName?: string;
+  section?: string;
+  price?: number;
+  imageUrl?: string | null;
+  options?: string[] | null;
+}
+
 export interface MenuResponse {
   menuId: UUID;
   section: string;
