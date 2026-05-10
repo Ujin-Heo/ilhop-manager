@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import table, customer, menu, order, order_item, external, websocket
+from .routes import table, customer, menu, order, order_item, external, websocket, metadata
 
 app = FastAPI()
 
@@ -21,3 +21,4 @@ app.include_router(order.router)
 app.include_router(order_item.router)
 app.include_router(external.router)
 app.include_router(websocket.router)
+app.include_router(metadata.router)

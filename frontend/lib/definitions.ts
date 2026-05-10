@@ -172,6 +172,22 @@ export interface ErrorResponse {
   message: string;
 }
 
+// --- MetaData Interfaces ---
+
+export interface MetaDataResponse {
+  accountNumber: string;
+  accountHolder: string;
+  maxTableRow: number;
+  maxTableCol: number;
+}
+
+export interface MetaDataUpdateRequest {
+  accountNumber?: string;
+  accountHolder?: string;
+  maxTableRow?: number;
+  maxTableCol?: number;
+}
+
 // --- WebSocket Message Interfaces ---
 
 export interface OrderCreatedMessage {

@@ -6,28 +6,35 @@ import {
   CustomerTablePlaceholder,
 } from "@/components/admin/customer-table";
 import { getTables, deleteTable } from "@/lib/api/tables";
-import { TableStatus } from "@/lib/definitions";
+import { getMetadata } from "@/lib/api/metadata";
+import { TableStatus, MetaDataResponse } from "@/lib/definitions";
 import { Pencil, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Page() {
   const [tableInfos, setTableInfos] = useState<TableStatus[]>([]);
+  const [metadata, setMetadata] = useState<MetaDataResponse | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchTables = async () => {
+  const fetchData = async () => {
     try {
-      const data = await getTables();
-      setTableInfos(data);
+      setIsLoading(true);
+      const [tablesData, metaData] = await Promise.all([
+        getTables(),
+        getMetadata(),
+      ]);
+      setTableInfos(tablesData);
+      setMetadata(metaData);
     } catch (error) {
-      console.error("Failed to fetch tables:", error);
+      console.error("Failed to fetch data:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTables();
+    fetchData();
   }, []);
 
   const handleDeleteTable = async (tableId: string) => {
@@ -42,8 +49,8 @@ export default function Page() {
     }
   };
 
-  const maxRow = Math.max(0, ...tableInfos.map((t) => t.gridRow), 5); // Default min 5 rows
-  const maxCol = Math.max(0, ...tableInfos.map((t) => t.gridCol), 8); // Default min 8 cols
+  const maxRow = metadata?.maxTableRow || Math.max(0, ...tableInfos.map((t) => t.gridRow), 5);
+  const maxCol = metadata?.maxTableCol || Math.max(0, ...tableInfos.map((t) => t.gridCol), 8);
 
   if (isLoading) {
     return (

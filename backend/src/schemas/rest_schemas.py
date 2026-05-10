@@ -335,3 +335,17 @@ class PaymentConfirmInfo(BaseSchema):
 class Error(BaseSchema):
     code: str
     message: str
+
+
+class MetaDataResponse(BaseSchema):
+    account_number: Annotated[str, Field(examples=["123-456-7890"])]
+    account_holder: Annotated[str, Field(examples=["홍길동"])]
+    max_table_row: Annotated[int, Field(examples=[5])]
+    max_table_col: Annotated[int, Field(examples=[5])]
+
+
+class MetaDataUpdateRequest(BaseSchema):
+    account_number: Annotated[str | None, Field(examples=["123-456-7890"])] = None
+    account_holder: Annotated[str | None, Field(examples=["홍길동"])] = None
+    max_table_row: Annotated[int | None, Field(examples=[5])] = None
+    max_table_col: Annotated[int | None, Field(examples=[5])] = None

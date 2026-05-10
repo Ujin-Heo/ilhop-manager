@@ -168,3 +168,13 @@ class OrderItem(Base):
     # Relationships
     order: Mapped["Order"] = relationship(back_populates="items")
     menu: Mapped["Menu"] = relationship(back_populates="order_items")
+
+
+class MetaData(Base):
+    __tablename__ = "metadata"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    account_number: Mapped[str] = mapped_column(String(50), nullable=False)
+    account_holder: Mapped[str] = mapped_column(String(50), nullable=False)
+    max_table_row: Mapped[int] = mapped_column(Integer, nullable=False)
+    max_table_col: Mapped[int] = mapped_column(Integer, nullable=False)

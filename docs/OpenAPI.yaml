@@ -13,7 +13,56 @@ tags:
   - name: order
   - name: order item
   - name: external
+  - name: metadata
 paths:
+  /metadata:
+    get:
+      tags:
+        - metadata
+      summary: "매장 기본 설정 조회"
+      description: "계좌 번호, 예금주, 테이블 최대 행/열 수 등 매장의 기본 설정 정보를 가져옵니다."
+      operationId: getMetadata
+      responses:
+        '200':
+          description: "성공적으로 설정을 불러옴"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaDataResponse'
+        default:
+          description: "서버 오류"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - metadata
+      summary: "매장 기본 설정 수정"
+      description: "매장의 기본 설정 정보를 업데이트합니다."
+      operationId: updateMetadata
+      requestBody:
+        description: "수정할 설정 정보"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetaDataUpdateRequest'
+      responses:
+        '200':
+          description: "수정 성공"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaDataResponse'
+        '400':
+          description: "잘못된 요청 데이터"
+        default:
+          description: "서버 오류"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /example:
       post: # get/post/put/delete 중 하나
         tags:
@@ -1228,3 +1277,40 @@ components:
       required:
         - code
         - message
+
+    MetaDataResponse:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+          example: "123-456-7890"
+        accountHolder:
+          type: string
+          example: "홍길동"
+        maxTableRow:
+          type: integer
+          example: 5
+        maxTableCol:
+          type: integer
+          example: 5
+      required:
+        - accountNumber
+        - accountHolder
+        - maxTableRow
+        - maxTableCol
+
+    MetaDataUpdateRequest:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+          example: "123-456-7890"
+        accountHolder:
+          type: string
+          example: "홍길동"
+        maxTableRow:
+          type: integer
+          example: 5
+        maxTableCol:
+          type: integer
+          example: 5

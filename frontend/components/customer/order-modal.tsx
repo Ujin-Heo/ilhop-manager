@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { X, Loader2, CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { createOrder, updateOrderMemo } from "@/lib/api/orders";
+import { getMetadata } from "@/lib/api/metadata";
+import { MetaDataResponse } from "@/lib/definitions";
 import { useCart } from "@/lib/contexts/cart-context";
 import { useCustomer } from "@/lib/contexts/customer-context";
 import { useWebsocket } from "@/lib/hooks/use-websocket";
@@ -39,6 +41,20 @@ export default function OrderModal({
   const [isPaid, setIsPaid] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [loading, setLoading] = useState(false);
+  const [metadata, setMetadata] = useState<MetaDataResponse | null>(null);
+
+  // Fetch metadata on mount
+  useEffect(() => {
+    const fetchMeta = async () => {
+      try {
+        const data = await getMetadata();
+        setMetadata(data);
+      } catch (error) {
+        console.error("Failed to fetch metadata:", error);
+      }
+    };
+    fetchMeta();
+  }, []);
 
   // WebSocket for payment status
   useWebsocket({
@@ -107,7 +123,7 @@ export default function OrderModal({
         }
       }
     },
-    [orderId]
+    [orderId],
   );
 
   const handleCancelOrder = useCallback(async () => {
@@ -255,7 +271,7 @@ export default function OrderModal({
                     <span className="text-blue font-bold">
                       {formatCurrency(cart.totalAmount)}
                     </span>
-                    원을
+                    을
                     <br />
                     입금자명{" "}
                     <span className="text-blue font-bold">{depositor}</span>
@@ -264,9 +280,11 @@ export default function OrderModal({
                   <div className="rounded-2xl bg-white p-6 font-bold border border-sepia/10 shadow-inner">
                     <p className="text-sepia text-sm mb-1">입금 계좌 안내</p>
                     <p className="text-xl text-deep-brown">
-                      카카오뱅크 3333-01-2345678
+                      {metadata?.accountNumber || "로딩 중..."}
                     </p>
-                    <p className="text-lg text-deep-brown">예금주: 홍길동</p>
+                    <p className="text-lg text-deep-brown">
+                      예금주: {metadata?.accountHolder || "로딩 중..."}
+                    </p>
                   </div>
                 </div>
               )}

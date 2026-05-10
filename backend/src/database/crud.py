@@ -2,7 +2,7 @@ from sqlalchemy import Row, select, func, update
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, load_only
-from .models import Table, Customer, Menu, Order, OrderItem
+from .models import MetaData, Table, Customer, Menu, Order, OrderItem
 from ..schemas.rest_schemas import (
     BaseModel,
     TableCreateRequest,
@@ -18,6 +18,8 @@ from ..schemas.rest_schemas import (
     OrderDetail,
     OrderCreateRequest,
     PaymentConfirmInfo,
+    MetaDataUpdateRequest,
+    MetaDataResponse,
 )
 
 # ========= Table 관련 로직 ===========================================
@@ -640,3 +642,46 @@ def _extract_payment_info(data: PaymentConfirmInfo) -> tuple[str, int]:
     depositor = depositor_match.group(1).strip() if depositor_match else "Unknown"
 
     return depositor, total_price
+
+
+# ========= MetaData 관련 로직 ========================================
+async def get_metadata_from_db(db: AsyncSession) -> MetaData:
+    """
+    DB에서 메타데이터 정보를 가져옵니다.
+    만약 데이터가 없다면 기본값을 생성하여 저장한 뒤 반환합니다.
+    """
+    stmt = select(MetaData).limit(1)
+    result = await db.execute(stmt)
+    metadata = result.scalar_one_or_none()
+
+    if metadata is None:
+        # 기본값 생성
+        metadata = MetaData(
+            account_number="000-000-000000",
+            account_holder="기본 소유주",
+            max_table_row=5,
+            max_table_col=5,
+        )
+        db.add(metadata)
+        await db.commit()
+        await db.refresh(metadata)
+
+    return metadata
+
+
+async def update_metadata_in_db(
+    db: AsyncSession, request_data: MetaDataUpdateRequest
+) -> MetaData:
+    """
+    DB의 메타데이터 정보를 업데이트합니다.
+    """
+    metadata = await get_metadata_from_db(db)
+
+    update_data = request_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(metadata, key, value)
+
+    await db.commit()
+    await db.refresh(metadata)
+
+    return metadata

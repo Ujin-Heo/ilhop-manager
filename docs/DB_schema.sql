@@ -47,4 +47,12 @@ CREATE TABLE "order_items" ( -- 'menus by order' 대신 직관적인 이름
     "price_at_order" bigint NOT NULL, -- 주문 당시 가격 기록
     "selected_option" varchar(50),
     "is_served"   boolean DEFAULT false NOT NULL
-);
+    );
+
+    CREATE TABLE "metadata" (
+    "id" SERIAL PRIMARY KEY,
+    "account_number" varchar(50) NOT NULL,
+    "account_holder" varchar(50) NOT NULL,
+    "max_table_row" int NOT NULL,
+    "max_table_col" int NOT NULL
+    );

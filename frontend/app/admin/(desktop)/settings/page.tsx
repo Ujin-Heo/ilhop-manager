@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getMenus } from "@/lib/api/menus";
-import { MenuResponse } from "@/lib/definitions";
+import { getMetadata, updateMetadata } from "@/lib/api/metadata";
+import { MenuResponse, MetaDataResponse, MetaDataUpdateRequest } from "@/lib/definitions";
 import ExistingMenuCard from "@/components/admin/existing-menu-card";
 import NewMenuForm from "@/components/admin/new-menu-form";
 
@@ -11,6 +12,12 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editMenu, setEditMenu] = useState<MenuResponse | null>(null);
+
+  const [metadata, setMetadata] = useState<MetaDataResponse | null>(null);
+  const [metaLoading, setMetaLoading] = useState(true);
+  const [metaError, setMetaError] = useState<string | null>(null);
+  const [isEditingMeta, setIsEditingMeta] = useState(false);
+  const [formData, setFormData] = useState<MetaDataUpdateRequest>({});
 
   const fetchMenus = async () => {
     try {
@@ -26,16 +33,135 @@ export default function Page() {
     }
   };
 
+  const fetchMetadata = async () => {
+    try {
+      setMetaLoading(true);
+      const data = await getMetadata();
+      setMetadata(data);
+      setFormData({
+        accountNumber: data.accountNumber,
+        accountHolder: data.accountHolder,
+        maxTableRow: data.maxTableRow,
+        maxTableCol: data.maxTableCol,
+      });
+    } catch (err) {
+      setMetaError(
+        err instanceof Error ? err.message : "기본 설정을 불러오는데 실패했습니다.",
+      );
+    } finally {
+      setMetaLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchMenus();
+    fetchMetadata();
   }, []);
+
+  const handleUpdateMetadata = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setMetaLoading(true);
+      await updateMetadata(formData);
+      await fetchMetadata();
+      setIsEditingMeta(false);
+    } catch (err) {
+      setMetaError(
+        err instanceof Error ? err.message : "설정 저장에 실패했습니다.",
+      );
+    } finally {
+      setMetaLoading(false);
+    }
+  };
 
   return (
     <main className="bg-warm-beige min-h-screen p-10 flex flex-col items-center gap-10">
       {/* 기본 설정 섹션 */}
       <section className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-light-gray">
         <h2 className="text-2xl font-bold mb-6 text-black">기본 설정</h2>
-        <div className="text-sepia">기본 설정 내용이 여기에 들어갑니다.</div>
+        
+        {metaLoading && !metadata ? (
+          <div className="text-sepia">로딩 중...</div>
+        ) : metaError ? (
+          <div className="text-red mb-4">{metaError}</div>
+        ) : (
+          <form onSubmit={handleUpdateMetadata} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-deep-brown">입금 계좌 번호</label>
+                <input
+                  type="text"
+                  disabled={!isEditingMeta}
+                  value={formData.accountNumber || ""}
+                  onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                  className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-deep-brown">예금주</label>
+                <input
+                  type="text"
+                  disabled={!isEditingMeta}
+                  value={formData.accountHolder || ""}
+                  onChange={(e) => setFormData({ ...formData, accountHolder: e.target.value })}
+                  className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-deep-brown">최대 테이블 행(Row)</label>
+                <input
+                  type="number"
+                  disabled={!isEditingMeta}
+                  value={formData.maxTableRow || ""}
+                  onChange={(e) => setFormData({ ...formData, maxTableRow: parseInt(e.target.value) })}
+                  className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-deep-brown">최대 테이블 열(Col)</label>
+                <input
+                  type="number"
+                  disabled={!isEditingMeta}
+                  value={formData.maxTableCol || ""}
+                  onChange={(e) => setFormData({ ...formData, maxTableCol: parseInt(e.target.value) })}
+                  className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4">
+              {!isEditingMeta ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingMeta(true)}
+                  className="px-6 py-2 bg-deep-brown text-white rounded hover:bg-sepia transition-colors"
+                >
+                  수정하기
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditingMeta(false);
+                      setFormData(metadata!);
+                    }}
+                    className="px-6 py-2 bg-light-gray text-black rounded hover:bg-gray-300 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={metaLoading}
+                    className="px-6 py-2 bg-green-700 text-white rounded hover:bg-green-800 transition-colors disabled:opacity-50"
+                  >
+                    {metaLoading ? "저장 중..." : "저장하기"}
+                  </button>
+                </>
+              )}
+            </div>
+          </form>
+        )}
       </section>
 
       {/* 메뉴 설정 섹션 */}
