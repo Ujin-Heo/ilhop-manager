@@ -6,9 +6,7 @@ import { OrderDetail } from "@/lib/definitions";
 interface ServingCardProp {
   order: OrderDetail;
   onToggle: (
-    orderId: string,
-    menuId: string,
-    selectedOption: string | null,
+    orderItemId: string,
     isServed: boolean,
   ) => void;
 }
@@ -25,7 +23,7 @@ export default function ServingCard({ order, onToggle }: ServingCardProp) {
     if (!order.items || !order.items[itemIndex]) return;
 
     const item = order.items[itemIndex];
-    onToggle(order.orderId, item.menuId, item.selectedOption, !item.isServed);
+    onToggle(item.orderItemId, !item.isServed);
   };
 
   if (!order.isPaid) return null;

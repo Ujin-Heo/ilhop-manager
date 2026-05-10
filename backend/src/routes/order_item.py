@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,13 +11,11 @@ from ..schemas.rest_schemas import (
 from ..schemas.ws_schemas import ItemServedUpdatedMessage
 from ..modules.websocket_manager import manager
 
-from typing import Annotated
-
 router = APIRouter()
 
 
 @router.patch(
-    "/order-items/{order_id}/{menu_id}",
+    "/order-items/{order_item_id}",
     operation_id="update_order_item_served_status",
     response_model=OrderItemServedUpdateResponse,  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,
@@ -26,10 +24,8 @@ router = APIRouter()
 )
 async def update_order_item_served_status(
     # Path Parameters
-    order_id: str,
-    menu_id: str,
+    order_item_id: str,
     request_data: OrderItemServedUpdateRequest,  # Request Body (Pydantic)
-    selected_option: Annotated[str | None, Query(alias="selectedOption")] = None,
     db: AsyncSession = Depends(get_db),  # DB Session Injection
 ):
     """
@@ -38,11 +34,12 @@ async def update_order_item_served_status(
     """
     try:
         updated_order_item: OrderItem = await update_order_item_data_in_db(
-            db, order_id, menu_id, selected_option, request_data
+            db, order_item_id, request_data
         )
 
         message = ItemServedUpdatedMessage(
             data=OrderItemServedUpdateResponse(
+                order_item_id=updated_order_item.order_item_id,
                 order_id=updated_order_item.order_id,
                 menu_id=updated_order_item.menu_id,
                 selected_option=updated_order_item.selected_option,

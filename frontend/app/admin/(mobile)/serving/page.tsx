@@ -25,34 +25,22 @@ export default function Page() {
   };
 
   const handleToggleServed = async (
-    orderId: string,
-    menuId: string,
-    selectedOption: string | null,
+    orderItemId: string,
     isServed: boolean,
   ) => {
     // Optimistic Update
     setOrders((prevOrders) =>
-      prevOrders.map((order) => {
-        if (order.orderId !== orderId) return order;
-        return {
-          ...order,
-          items:
-            order.items?.map((item) =>
-              item.menuId === menuId && item.selectedOption === selectedOption
-                ? { ...item, isServed }
-                : item,
-            ) || null,
-        };
-      }),
+      prevOrders.map((order) => ({
+        ...order,
+        items:
+          order.items?.map((item) =>
+            item.orderItemId === orderItemId ? { ...item, isServed } : item,
+          ) || null,
+      })),
     );
 
     try {
-      await updateOrderItemServedStatus(
-        orderId,
-        menuId,
-        { isServed },
-        selectedOption,
-      );
+      await updateOrderItemServedStatus(orderItemId, { isServed });
     } catch (error) {
       console.error(error);
       alert("서빙 상태 업데이트에 실패했습니다.");
@@ -65,21 +53,15 @@ export default function Page() {
     const { event, data } = message;
     switch (event) {
       case "ITEM_SERVED_UPDATED": {
-        const { orderId, menuId, selectedOption, isServed } = data;
+        const { orderItemId, isServed } = data;
         setOrders((prevOrders) =>
-          prevOrders.map((order) => {
-            if (order.orderId !== orderId) return order;
-            return {
-              ...order,
-              items:
-                order.items?.map((item) =>
-                  item.menuId === menuId &&
-                  item.selectedOption === selectedOption
-                    ? { ...item, isServed }
-                    : item,
-                ) || null,
-            };
-          }),
+          prevOrders.map((order) => ({
+            ...order,
+            items:
+              order.items?.map((item) =>
+                item.orderItemId === orderItemId ? { ...item, isServed } : item,
+              ) || null,
+          })),
         );
         break;
       }

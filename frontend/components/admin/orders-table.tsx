@@ -24,21 +24,15 @@ export default function OrdersTable({
     const { event, data } = message;
     switch (event) {
       case "ITEM_SERVED_UPDATED": {
-        const { orderId, menuId, selectedOption, isServed } = data;
+        const { orderItemId, isServed } = data;
         setOrders((prevOrders) =>
-          prevOrders.map((order) => {
-            if (order.orderId !== orderId) return order;
-            return {
-              ...order,
-              items:
-                order.items?.map((item) =>
-                  item.menuId === menuId &&
-                  item.selectedOption === selectedOption
-                    ? { ...item, isServed }
-                    : item,
-                ) || null,
-            };
-          }),
+          prevOrders.map((order) => ({
+            ...order,
+            items:
+              order.items?.map((item) =>
+                item.orderItemId === orderItemId ? { ...item, isServed } : item,
+              ) || null,
+          })),
         );
         break;
       }
@@ -91,31 +85,23 @@ export default function OrdersTable({
   };
 
   const handleToggleServed = async (
-    orderId: string,
-    menuId: string,
-    selectedOption: string | null,
+    orderItemId: string,
     currentIsServed: boolean,
   ) => {
     try {
-      await updateOrderItemServedStatus(
-        orderId,
-        menuId,
-        { isServed: !currentIsServed },
-        selectedOption,
-      );
+      await updateOrderItemServedStatus(orderItemId, {
+        isServed: !currentIsServed,
+      });
       setOrders((prevOrders) =>
-        prevOrders.map((order) => {
-          if (order.orderId !== orderId) return order;
-          return {
-            ...order,
-            items:
-              order.items?.map((item) =>
-                item.menuId === menuId && item.selectedOption === selectedOption
-                  ? { ...item, isServed: !currentIsServed }
-                  : item,
-              ) || null,
-          };
-        }),
+        prevOrders.map((order) => ({
+          ...order,
+          items:
+            order.items?.map((item) =>
+              item.orderItemId === orderItemId
+                ? { ...item, isServed: !currentIsServed }
+                : item,
+            ) || null,
+        })),
       );
     } catch (error) {
       console.error(error);
@@ -191,12 +177,7 @@ export default function OrdersTable({
                       <button
                         key={`${orderIdx}-${itemIdx}-${item.menuName}-${item.selectedOption}`}
                         onClick={() =>
-                          handleToggleServed(
-                            order.orderId,
-                            item.menuId,
-                            item.selectedOption,
-                            item.isServed,
-                          )
+                          handleToggleServed(item.orderItemId, item.isServed)
                         }
                         disabled={!order.isPaid}
                         className={cn(

@@ -346,6 +346,7 @@ async def get_orders_from_db(
 
         order_item_briefs = [
             OrderItemBrief(
+                order_item_id=item.order_item_id,
                 menu_id=item.menu_id,
                 menu_name=item.menu.menu_name,
                 quantity=item.quantity,
@@ -415,6 +416,7 @@ async def add_new_order_to_db(
 
     new_order_item_briefs = [
         OrderItemBrief(
+            order_item_id=item.order_item_id,
             menu_id=item.menu_id,
             menu_name=item.menu.menu_name,
             quantity=item.quantity,
@@ -469,28 +471,17 @@ async def update_order_data_in_db(
 
 async def update_order_item_data_in_db(
     db: AsyncSession,
-    order_id: str,
-    menu_id: str,
-    selected_option: str | None,
+    order_item_id: str,
     request_data: BaseModel,
 ) -> OrderItem:
 
-    stmt = select(OrderItem).where(
-        OrderItem.order_id == order_id,
-        OrderItem.menu_id == menu_id,
-        OrderItem.selected_option == selected_option,
-    )
-    # 옵션 선택이 필수가 아닌 메뉴가 있는 경우,
-    # selected_option 값이 None이어도 where 안에 넣어두지 않으면 특정 옵션이 선택된 같은 menu_id의 다른 항목까지 여러개가 불러와질 수 있음
-    # 즉, 위 코드처럼 OrderItem.selected_option == None임을 명시하는 것이 안전함
+    stmt = select(OrderItem).where(OrderItem.order_item_id == order_item_id)
 
     result = await db.execute(stmt)
     order_item_to_update: OrderItem | None = result.scalar_one_or_none()
 
     if order_item_to_update is None:
-        raise NoResultFound(
-            f"(order_id: {order_id},\n menu_id: {menu_id},\n selected_option: {selected_option})을 만족하는 주문 항목이 존재하지 않습니다."
-        )
+        raise NoResultFound(f"ID가 {order_item_id}인 주문 항목이 존재하지 않습니다.")
 
     update_data = request_data.model_dump(exclude_unset=True)
     for key, val in update_data.items():

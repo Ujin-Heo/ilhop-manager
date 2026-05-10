@@ -119,6 +119,7 @@ export interface OrderItemServedUpdateRequest {
 }
 
 export interface OrderItemServedUpdateResponse {
+  orderItemId: UUID;
   orderId: UUID;
   menuId: UUID;
   selectedOption: string | null;
@@ -126,6 +127,7 @@ export interface OrderItemServedUpdateResponse {
 }
 
 export interface OrderItemBrief {
+  orderItemId: UUID;
   menuId: UUID;
   menuName: string;
   quantity: number;

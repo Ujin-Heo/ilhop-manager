@@ -146,13 +146,16 @@ class OrderItem(Base):
 
     __table_args__ = (CheckConstraint("quantity > 0", name="check_quantity_positive"),)
 
+    order_item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()")
+    )
     order_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("orders.order_id", name="FK_order_items_orders"),
-        primary_key=True,
+        nullable=False,
     )
     menu_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("menus.menu_id", name="FK_order_items_menus"),
-        primary_key=True,
+        nullable=False,
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     price_at_order: Mapped[int] = mapped_column(BigInteger, nullable=False)
