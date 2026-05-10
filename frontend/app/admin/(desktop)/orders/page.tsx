@@ -1,6 +1,8 @@
 import OrdersTable from "@/components/admin/orders-table";
 import { getOrders } from "@/lib/api/orders";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
   const ordersData = await getOrders();
 
