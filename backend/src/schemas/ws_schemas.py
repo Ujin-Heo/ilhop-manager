@@ -4,6 +4,7 @@ from typing import Literal
 from .rest_schemas import (
     OrderDetail,
     OrderPaymentUpdateResponse,
+    OrderMemoUpdateResponse,
     OrderItemServedUpdateResponse,
 )
 
@@ -16,6 +17,11 @@ class OrderCreatedMessage(BaseModel):
 class PaymentConfirmedMessage(BaseModel):
     event: Literal["PAYMENT_CONFIRMED"] = "PAYMENT_CONFIRMED"
     data: OrderPaymentUpdateResponse
+
+
+class MemoUpdatedMessage(BaseModel):
+    event: Literal["MEMO_UPDATED"] = "MEMO_UPDATED"
+    data: OrderMemoUpdateResponse
 
 
 class ItemServedUpdatedMessage(BaseModel):

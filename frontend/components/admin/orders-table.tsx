@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { formatOrderTime, formatCurrency, cn } from "@/lib/utils";
-import { OrderDetail } from "@/lib/definitions";
+import { OrderDetail, WebSocketMessage } from "@/lib/definitions";
 import { updateOrderIsPaid, updateOrderMemo } from "@/lib/api/orders";
 import { updateOrderItemServedStatus } from "@/lib/api/order-items";
 import { useWebsocket } from "@/lib/hooks/use-websocket";
@@ -15,10 +15,13 @@ export default function OrdersTable({
   orders: initialOrders,
 }: OrdersTableProps) {
   const [orders, setOrders] = useState<OrderDetail[]>(initialOrders);
-  const [editingMemoOrderId, setEditingMemoOrderId] = useState<string | null>(null);
+  const [editingMemoOrderId, setEditingMemoOrderId] = useState<string | null>(
+    null,
+  );
   const [editingMemoValue, setEditingMemoValue] = useState<string>("");
 
-  const handleWebsocketMessage = useCallback((event: string, data: any) => {
+  const handleWebsocketMessage = useCallback((message: WebSocketMessage) => {
+    const { event, data } = message;
     switch (event) {
       case "ITEM_SERVED_UPDATED": {
         const { orderId, menuId, selectedOption, isServed } = data;
@@ -27,11 +30,13 @@ export default function OrdersTable({
             if (order.orderId !== orderId) return order;
             return {
               ...order,
-              items: order.items?.map((item) =>
-                item.menuId === menuId && item.selectedOption === selectedOption
-                  ? { ...item, isServed }
-                  : item,
-              ) || null,
+              items:
+                order.items?.map((item) =>
+                  item.menuId === menuId &&
+                  item.selectedOption === selectedOption
+                    ? { ...item, isServed }
+                    : item,
+                ) || null,
             };
           }),
         );
@@ -39,6 +44,15 @@ export default function OrdersTable({
       }
       case "ORDER_CREATED": {
         setOrders((prevOrders) => [data, ...prevOrders]);
+        break;
+      }
+      case "MEMO_UPDATED": {
+        const { orderId, memo } = data;
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.orderId === orderId ? { ...order, memo } : order,
+          ),
+        );
         break;
       }
       case "PAYMENT_CONFIRMED": {
@@ -57,12 +71,17 @@ export default function OrdersTable({
 
   useWebsocket({ onMessage: handleWebsocketMessage });
 
-  const handleTogglePayment = async (orderId: string, currentIsPaid: boolean) => {
+  const handleTogglePayment = async (
+    orderId: string,
+    currentIsPaid: boolean,
+  ) => {
     try {
       await updateOrderIsPaid(orderId, { isPaid: !currentIsPaid });
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.orderId === orderId ? { ...order, isPaid: !currentIsPaid } : order,
+          order.orderId === orderId
+            ? { ...order, isPaid: !currentIsPaid }
+            : order,
         ),
       );
     } catch (error) {
@@ -78,17 +97,23 @@ export default function OrdersTable({
     currentIsServed: boolean,
   ) => {
     try {
-      await updateOrderItemServedStatus(orderId, menuId, { isServed: !currentIsServed }, selectedOption);
+      await updateOrderItemServedStatus(
+        orderId,
+        menuId,
+        { isServed: !currentIsServed },
+        selectedOption,
+      );
       setOrders((prevOrders) =>
         prevOrders.map((order) => {
           if (order.orderId !== orderId) return order;
           return {
             ...order,
-            items: order.items?.map((item) =>
-              item.menuId === menuId && item.selectedOption === selectedOption
-                ? { ...item, isServed: !currentIsServed }
-                : item,
-            ) || null,
+            items:
+              order.items?.map((item) =>
+                item.menuId === menuId && item.selectedOption === selectedOption
+                  ? { ...item, isServed: !currentIsServed }
+                  : item,
+              ) || null,
           };
         }),
       );
@@ -108,8 +133,10 @@ export default function OrdersTable({
       await updateOrderMemo(orderId, { memo: editingMemoValue });
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.orderId === orderId ? { ...order, memo: editingMemoValue } : order
-        )
+          order.orderId === orderId
+            ? { ...order, memo: editingMemoValue }
+            : order,
+        ),
       );
       setEditingMemoOrderId(null);
     } catch (error) {
@@ -163,7 +190,14 @@ export default function OrdersTable({
                     {items.map((item, itemIdx) => (
                       <button
                         key={`${orderIdx}-${itemIdx}-${item.menuName}-${item.selectedOption}`}
-                        onClick={() => handleToggleServed(order.orderId, item.menuId, item.selectedOption, item.isServed)}
+                        onClick={() =>
+                          handleToggleServed(
+                            order.orderId,
+                            item.menuId,
+                            item.selectedOption,
+                            item.isServed,
+                          )
+                        }
                         disabled={!order.isPaid}
                         className={cn(
                           "px-2 py-1 rounded text-xs border transition-colors",
@@ -188,7 +222,9 @@ export default function OrdersTable({
                 <td className="p-4">{order.depositor || ""}</td>
                 <td className="p-4">
                   <button
-                    onClick={() => handleTogglePayment(order.orderId, order.isPaid)}
+                    onClick={() =>
+                      handleTogglePayment(order.orderId, order.isPaid)
+                    }
                     className="hover:underline focus:outline-none"
                   >
                     {order.isPaid ? (
@@ -198,7 +234,7 @@ export default function OrdersTable({
                     )}
                   </button>
                 </td>
-                <td 
+                <td
                   className="p-4 text-xs cursor-pointer min-w-[150px]"
                   onClick={() => startEditingMemo(order.orderId, order.memo)}
                 >

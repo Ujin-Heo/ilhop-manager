@@ -171,7 +171,13 @@ export interface ItemServedUpdatedMessage {
   data: OrderItemServedUpdateResponse;
 }
 
+export interface OrderMemoUpdatedMessage {
+  event: 'MEMO_UPDATED';
+  data: OrderMemoUpdateResponse;
+}
+
 export type WebSocketMessage =
   | OrderCreatedMessage
   | PaymentConfirmedMessage
-  | ItemServedUpdatedMessage;
+  | ItemServedUpdatedMessage
+  | OrderMemoUpdatedMessage;

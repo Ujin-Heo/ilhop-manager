@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { BASE_URL } from "@/lib/api/config";
+import { WebSocketMessage } from "@/lib/definitions";
 
 // 외부에서 훅을 사용할 때 넘겨줄 옵션
 interface UseWebsocketOptions {
-  onMessage?: (event: string, data: any) => void; // message를 받았을 때 실행할 콜백 함수
+  onMessage?: (message: WebSocketMessage) => void; // message를 받았을 때 실행할 콜백 함수
   url?: string; // 연결할 url
 }
 
@@ -41,9 +42,9 @@ export function useWebsocket({ onMessage, url = "/ws/orders" }: UseWebsocketOpti
     // onmessage: 서버로부터 데이터를 받았을 때 실행됨.
     socket.onmessage = (event) => {
       try {
-        const message = JSON.parse(event.data);
+        const message = JSON.parse(event.data) as WebSocketMessage;
         if (message.event && message.data) {
-          onMessage?.(message.event, message.data);
+          onMessage?.(message);
         }
       } catch (error) {
         console.error("Failed to parse WebSocket message:", error);

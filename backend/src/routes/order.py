@@ -17,7 +17,11 @@ from ..schemas.rest_schemas import (
     OrderMemoUpdateRequest,
     OrderMemoUpdateResponse,
 )
-from ..schemas.ws_schemas import OrderCreatedMessage
+from ..schemas.ws_schemas import (
+    OrderCreatedMessage,
+    PaymentConfirmedMessage,
+    MemoUpdatedMessage,
+)
 from ..modules.websocket_manager import manager
 
 from typing import Annotated
@@ -83,7 +87,9 @@ async def create_order(
         message = OrderCreatedMessage(data=new_order_detail)
 
         # 모델의 데이터를 딕셔너리로 변환하여 전송
-        await manager.broadcast_to_admins(message.model_dump(mode="json", by_alias=True))
+        await manager.broadcast_to_admins(
+            message.model_dump(mode="json", by_alias=True)
+        )
 
         return new_order_detail
 
@@ -125,6 +131,17 @@ async def update_order_is_paid(
     """
     try:
         updated_order: Order = await update_order_data_in_db(db, order_id, request_data)
+
+        message = PaymentConfirmedMessage(
+            data=OrderPaymentUpdateResponse(
+                order_id=updated_order.order_id, is_paid=updated_order.is_paid
+            )
+        )
+
+        await manager.broadcast_to_admins(
+            message.model_dump(mode="json", by_alias=True)
+        )
+
         return updated_order
 
     except NoResultFound as nrfe:
@@ -170,6 +187,17 @@ async def update_order_memo(
     """
     try:
         updated_order: Order = await update_order_data_in_db(db, order_id, request_data)
+
+        message = MemoUpdatedMessage(
+            data=OrderMemoUpdateResponse(
+                order_id=updated_order.order_id, memo=updated_order.memo
+            )
+        )
+
+        await manager.broadcast_to_admins(
+            message.model_dump(mode="json", by_alias=True)
+        )
+
         return updated_order
 
     except NoResultFound as nrfe:
