@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { X, Loader2, CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { createOrder, updateOrderMemo } from "@/lib/api/orders";
@@ -97,16 +97,49 @@ export default function OrderModal({
     }
   };
 
-  const handleCancelOrder = async () => {
-    if (orderId) {
-      try {
-        await updateOrderMemo(orderId, { memo: "주문 취소" });
-      } catch (error) {
-        console.error("Failed to update memo:", error);
+  const cancelOrderApi = useCallback(
+    async (options?: RequestInit) => {
+      if (orderId) {
+        try {
+          await updateOrderMemo(orderId, { memo: "주문 취소" }, options);
+        } catch (error) {
+          console.error("Failed to update memo:", error);
+        }
       }
-    }
+    },
+    [orderId]
+  );
+
+  const handleCancelOrder = useCallback(async () => {
+    await cancelOrderApi();
     onClose();
-  };
+  }, [cancelOrderApi, onClose]);
+
+  // Handle page refresh/unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (isOpen && orderId && !isPaid) {
+        // Use keepalive to ensure the request completes after the page is unloaded
+        cancelOrderApi({ keepalive: true });
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isOpen, orderId, isPaid, cancelOrderApi]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setStep("payment-method");
+      setPaymentMethod(null);
+      setDepositor("");
+      setOrderId(null);
+      setIsPaid(false);
+      setCountdown(5);
+      setLoading(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

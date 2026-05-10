@@ -76,7 +76,8 @@ export async function updateOrderIsPaid(
  */
 export async function updateOrderMemo(
   orderId: string,
-  data: OrderMemoUpdateRequest
+  data: OrderMemoUpdateRequest,
+  options?: RequestInit
 ): Promise<OrderMemoUpdateResponse> {
   const response = await fetch(`${BASE_URL}/orders/${orderId}/memo`, {
     method: 'PATCH',
@@ -84,6 +85,7 @@ export async function updateOrderMemo(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    ...options,
   });
 
   if (!response.ok) {
