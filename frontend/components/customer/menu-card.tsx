@@ -23,6 +23,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
     if (quantity <= 0) return;
 
     const newItem = {
+      menuId: menu.menuId,
       menuName: menu.menuName,
       totalQuantity: quantity,
       unitPrice: menu.price,
@@ -32,7 +33,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
     setCart((prev) => {
       const existingItemIndex = prev.orderItems.findIndex(
         (item) =>
-          item.menuName === newItem.menuName &&
+          item.menuId === newItem.menuId &&
           item.selectedOption === newItem.selectedOption,
       );
 

@@ -138,6 +138,9 @@ async def update_order_is_paid(
             )
         )
 
+        await manager.send_to_customer(
+            order_id, message.model_dump(mode="json", by_alias=True)
+        )
         await manager.broadcast_to_admins(
             message.model_dump(mode="json", by_alias=True)
         )

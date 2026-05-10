@@ -18,7 +18,7 @@ export default function CartItem({ item }: CartItemProps) {
     setCart((prev) => {
       const updatedItems = prev.orderItems.map((orderItem) => {
         if (
-          orderItem.menuName === item.menuName &&
+          orderItem.menuId === item.menuId &&
           orderItem.selectedOption === item.selectedOption
         ) {
           const quantity =
@@ -47,7 +47,7 @@ export default function CartItem({ item }: CartItemProps) {
       const updatedItems = prev.orderItems.filter(
         (orderItem) =>
           !(
-            orderItem.menuName === item.menuName &&
+            orderItem.menuId === item.menuId &&
             orderItem.selectedOption === item.selectedOption
           ),
       );

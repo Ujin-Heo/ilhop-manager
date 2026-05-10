@@ -135,6 +135,7 @@ export interface OrderItemBrief {
 
 
 export interface OrderItemSummaryResponse {
+  menuId: UUID;
   menuName: string;
   totalQuantity: number;
   unitPrice: number;

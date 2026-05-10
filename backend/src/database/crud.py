@@ -240,6 +240,7 @@ async def get_customer_order_summary_from_db(
     # 2. 고객은 존재하므로 주문 내역 집계 실행
     """
     SELECT
+        m.menu_id,
         m.menu_name,
         SUM(oi.quantity) as total_quantity,
         MAX(oi.price_at_order) as unit_price,
@@ -248,10 +249,11 @@ async def get_customer_order_summary_from_db(
     JOIN order_items oi ON o.order_id = oi.order_id
     JOIN menus m ON oi.menu_id = m.menu_id
     WHERE o.customer_id = '...' AND o.payment_status = true
-    GROUP BY m.menu_name, oi.selected_option;
+    GROUP BY m.menu_id, m.menu_name, oi.selected_option;
     """
     stmt = (
         select(
+            Menu.menu_id,
             Menu.menu_name,
             func.sum(OrderItem.quantity).label("total_quantity"),
             func.max(OrderItem.price_at_order).label("unit_price"),
@@ -265,7 +267,7 @@ async def get_customer_order_summary_from_db(
     if is_paid is not None:
         stmt = stmt.where(Order.is_paid == is_paid)
 
-    stmt = stmt.group_by(Menu.menu_name, OrderItem.selected_option)
+    stmt = stmt.group_by(Menu.menu_id, Menu.menu_name, OrderItem.selected_option)
 
     result = await db.execute(stmt)
 
@@ -276,6 +278,7 @@ async def get_customer_order_summary_from_db(
     total_amount = 0
     for row in rows:
         item = OrderItemSummaryResponse(
+            menu_id=row["menu_id"],
             menu_name=row["menu_name"],
             total_quantity=row["total_quantity"],
             unit_price=row["unit_price"],

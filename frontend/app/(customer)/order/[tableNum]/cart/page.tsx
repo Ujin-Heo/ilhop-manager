@@ -1,11 +1,12 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 import CartItem from "@/components/customer/cart-item";
 import { formatCurrency } from "@/lib/utils";
 import { useCart } from "@/lib/contexts/cart-context";
+import OrderModal from "@/components/customer/order-modal";
 
 export default function Page({
   params,
@@ -14,6 +15,7 @@ export default function Page({
 }) {
   const { tableNum } = use(params);
   const { cart } = useCart();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const items = cart.orderItems;
   const totalAmount = cart.totalAmount;
 
@@ -33,7 +35,7 @@ export default function Page({
       <ul className="grid grid-cols-1 gap-2">
         {items.length > 0 ? (
           items.map((item, itemIdx) => (
-            <li key={`${itemIdx}-${item.menuName}-${item.selectedOption}`}>
+            <li key={`${itemIdx}-${item.menuId}-${item.selectedOption}`}>
               <CartItem item={item} />
             </li>
           ))
@@ -60,6 +62,7 @@ export default function Page({
             닫기
           </Link>
           <button
+            onClick={() => setIsModalOpen(true)}
             disabled={items.length === 0}
             className="flex-3 p-4 rounded-xl bg-cinnamon text-white text-xl font-semibold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -67,6 +70,12 @@ export default function Page({
           </button>
         </div>
       </footer>
+
+      <OrderModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        tableNum={tableNum}
+      />
     </main>
   );
 }

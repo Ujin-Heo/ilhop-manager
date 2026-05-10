@@ -259,6 +259,7 @@ class OrderItemBrief(BaseSchema):
 
 
 class OrderItemSummaryResponse(BaseSchema):
+    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
     menu_name: Annotated[str, Field(examples=["좋은토닉"])]
     total_quantity: Annotated[
         int, Field(description="메뉴+옵션 조합의 합계 수량", examples=[2])
