@@ -38,11 +38,11 @@ CREATE TABLE "orders" (
 );
 
 CREATE TABLE "order_items" ( -- 'menus by order' 대신 직관적인 이름
+    "order_item_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     "order_id"    uuid NOT NULL CONSTRAINT "FK_order_items_orders" REFERENCES "orders"("order_id"),
-    "menu_id"     uuid NOT NULL CONSTRAINT "FK_order_items_menus" REFERENCES "menus"("menu_id"),
+    "menu_id"     uuid CONSTRAINT "FK_order_items_menus" REFERENCES "menus"("menu_id") ON DELETE SET NULL,
     "quantity"    int NOT NULL CHECK (quantity > 0),
     "price_at_order" bigint NOT NULL, -- 주문 당시 가격 기록
     "selected_option" varchar(50),
-    "is_served"   boolean DEFAULT false NOT NULL,
-    PRIMARY KEY ("order_id", "menu_id")
+    "is_served"   boolean DEFAULT false NOT NULL
 );

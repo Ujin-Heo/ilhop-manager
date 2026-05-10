@@ -1,12 +1,37 @@
 import { MenuResponse } from "@/lib/definitions";
+import { Trash2 } from "lucide-react";
+import { deleteMenu } from "@/lib/api/menus";
 
 interface ExistingMenuCardProps {
   menu: MenuResponse;
+  onDelete?: () => void;
 }
 
-export default function ExistingMenuCard({ menu }: ExistingMenuCardProps) {
+export default function ExistingMenuCard({
+  menu,
+  onDelete,
+}: ExistingMenuCardProps) {
+  const handleDelete = async () => {
+    if (confirm(`정말 ${menu.menuName} 메뉴를 삭제하시겠습니까?`)) {
+      try {
+        await deleteMenu(menu.menuId);
+        onDelete?.();
+      } catch (error) {
+        console.error(error);
+        alert("메뉴 삭제에 실패했습니다.");
+      }
+    }
+  };
+
   return (
-    <div className="p-4 border border-light-gray rounded-md bg-ghost-white">
+    <div className="p-4 border border-light-gray rounded-md bg-ghost-white relative">
+      <button
+        onClick={handleDelete}
+        className="absolute top-2 right-2 p-2 text-sepia hover:text-red transition-colors"
+        title="메뉴 삭제"
+      >
+        <Trash2 size={18} />
+      </button>
       <div className="flex justify-between items-start">
         <div>
           <span className="text-xs text-sepia font-medium px-2 py-1 bg-pale-gray rounded mb-1 inline-block">

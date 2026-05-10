@@ -427,6 +427,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /menus/{menu_id}:
+    delete:
+      tags:
+        - menu
+      summary: "특정 메뉴 삭제"
+      description: |
+        지정한 UUID를 가진 메뉴를 삭제합니다.
+        연결된 주문 항목(order_items)의 menu_id는 NULL로 변경됩니다.
+      operationId: deleteMenu
+      parameters:
+        - name: menuId
+          in: path
+          description: "삭제할 메뉴의 UUID"
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: "삭제 성공 (반환할 콘텐츠 없음)"
+        '404':
+          description: "해당 메뉴를 찾을 수 없음"
+        default:
+          description: "서버 오류"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /orders:
     get:
       tags:
@@ -462,6 +491,7 @@ paths:
         백엔드는 `orders` 테이블에 기본 정보를 저장하고, 상세 메뉴들을 `order_items`에 기록합니다.
         장바구니 안에서 같은 `order_id`와 `selected_option`을 가진 항목은 반드시 하나의 `order_item`으로 묶여 있어야 합니다.
         즉, 하나의 (`order_id`, `menu_id`, `selected_option`) 조합으로 유일한 `order_item`을 특정할 수 있어야 합니다.
+        다만, 각 주문 항목은 고유한 `order_item_id`를 기본 키(PK)로 가집니다.
       operationId: createOrder
       requestBody:
         description: 주문 정보 및 장바구니에 담긴 메뉴 리스트
@@ -568,7 +598,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /order-items/{order_id}/{menu_id}:
+  /order-items/{order_item_id}:
     patch:
       tags:
         - order item
@@ -579,27 +609,13 @@ paths:
         캐셔와 홀서빙 화면에 실시간으로 반영되도록 합니다.
       operationId: updateOrderItemServedStatus
       parameters:
-        - name: orderId
+        - name: order_item_id
           in: path
-          description: "대상 주문의 UUID"
+          description: "대상 주문 항목의 UUID"
           required: true
           schema:
             type: string
             format: uuid
-        - name: menuId
-          in: path
-          description: "대상 메뉴의 UUID"
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: selectedOption
-          in: query
-          description: "대상 메뉴의 선택된 옵션"
-          required: false
-          schema:
-            type: string
-            example: "살구맛"
       requestBody:
         description: "변경할 서빙 상태 값"
         required: true
@@ -793,6 +809,7 @@ components:
         menuId:
           type: string
           format: uuid
+          nullable: true
           example: "550e8400-e29b-41d4-a716-446655440001"
         menuName:
           type: string
@@ -992,6 +1009,7 @@ components:
         menuId:
           type: string
           format: uuid
+          nullable: true
           example: "550e8400-e29b-41d4-a716-446655440001"
         quantity:
           type: integer
@@ -1024,6 +1042,10 @@ components:
     OrderItemServedUpdateResponse:
       type: object
       properties:
+        orderItemId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440003"
         orderId:
           type: string
           format: uuid
@@ -1031,6 +1053,7 @@ components:
         menuId:
           type: string
           format: uuid
+          nullable: true
           example: "550e8400-e29b-41d4-a716-446655440001"
         selectedOption:
           type: string
@@ -1041,6 +1064,7 @@ components:
           description: "서빙 완료 여부"
           example: true
       required:
+        - orderItemId
         - orderId
         - menuId
         - isServed
@@ -1048,6 +1072,15 @@ components:
     OrderItemBrief:
       type: object
       properties:
+        orderItemId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440003"
+        menuId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "550e8400-e29b-41d4-a716-446655440001"
         menuName:
           type: string
           example: "치킨 가라아게"
@@ -1064,6 +1097,8 @@ components:
           default: false
           example: false
       required:
+        - orderItemId
+        - menuId
         - menuName
         - quantity
         - isServed

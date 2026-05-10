@@ -34,3 +34,17 @@ export async function createMenu(data: MenuCreateRequest): Promise<MenuResponse>
 
   return response.json();
 }
+
+/**
+ * 특정 메뉴 삭제
+ */
+export async function deleteMenu(menuId: string): Promise<void> {
+  const response = await fetch(`${BASE_URL}/menus/${menuId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || '메뉴 삭제에 실패했습니다.');
+  }
+}

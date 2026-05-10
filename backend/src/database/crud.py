@@ -253,13 +253,13 @@ async def get_customer_order_summary_from_db(
     """
     stmt = (
         select(
-            Menu.menu_id,
-            Menu.menu_name,
+            OrderItem.menu_id,
+            func.coalesce(Menu.menu_name, "(삭제된 메뉴)").label("menu_name"),
             func.sum(OrderItem.quantity).label("total_quantity"),
             func.max(OrderItem.price_at_order).label("unit_price"),
             OrderItem.selected_option,
         )
-        .join(OrderItem.menu)
+        .outerjoin(OrderItem.menu)
         .join(OrderItem.order)
         .where(Order.customer_id == customer_id)
     )
@@ -267,7 +267,9 @@ async def get_customer_order_summary_from_db(
     if is_paid is not None:
         stmt = stmt.where(Order.is_paid == is_paid)
 
-    stmt = stmt.group_by(Menu.menu_id, Menu.menu_name, OrderItem.selected_option)
+    stmt = stmt.group_by(
+        OrderItem.menu_id, Menu.menu_name, OrderItem.selected_option
+    )
 
     result = await db.execute(stmt)
 
@@ -312,6 +314,19 @@ async def add_new_menu_to_db(db: AsyncSession, request_data: MenuCreateRequest) 
     return new_menu
 
 
+async def delete_menu_from_db(db: AsyncSession, menu_id: str) -> None:
+    """
+    DB에서 menu_id를 가진 Menu를 삭제합니다.
+    """
+    menu_to_delete = await db.get(Menu, menu_id)
+
+    if not menu_to_delete:
+        raise NoResultFound(f"ID가 {menu_id}인 메뉴를 찾을 수 없습니다.")
+
+    await db.delete(menu_to_delete)
+    await db.commit()
+
+
 # ========= Order 관련 로직 ===========================================
 async def get_orders_from_db(
     db: AsyncSession, is_paid: bool | None
@@ -348,7 +363,7 @@ async def get_orders_from_db(
             OrderItemBrief(
                 order_item_id=item.order_item_id,
                 menu_id=item.menu_id,
-                menu_name=item.menu.menu_name,
+                menu_name=item.menu.menu_name if item.menu else "(삭제된 메뉴)",
                 quantity=item.quantity,
                 selected_option=item.selected_option,
                 is_served=item.is_served,
@@ -418,7 +433,7 @@ async def add_new_order_to_db(
         OrderItemBrief(
             order_item_id=item.order_item_id,
             menu_id=item.menu_id,
-            menu_name=item.menu.menu_name,
+            menu_name=item.menu.menu_name if item.menu else "(삭제된 메뉴)",
             quantity=item.quantity,
             selected_option=item.selected_option,
             is_served=item.is_served,

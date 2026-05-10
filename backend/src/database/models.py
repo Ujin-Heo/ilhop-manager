@@ -153,9 +153,9 @@ class OrderItem(Base):
         ForeignKey("orders.order_id", name="FK_order_items_orders"),
         nullable=False,
     )
-    menu_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("menus.menu_id", name="FK_order_items_menus"),
-        nullable=False,
+    menu_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("menus.menu_id", name="FK_order_items_menus", ondelete="SET NULL"),
+        nullable=True,
     )
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     price_at_order: Mapped[int] = mapped_column(BigInteger, nullable=False)

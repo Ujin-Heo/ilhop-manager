@@ -124,7 +124,9 @@ class MenuCreateRequest(BaseSchema):
 
 
 class MenuResponse(BaseSchema):
-    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
     menu_name: Annotated[
         str, Field(description="음식 또는 음료 이름", examples=["치킨 가라아게"])
     ]
@@ -231,7 +233,9 @@ class OrderSummaryResponse(BaseSchema):
 
 
 class OrderItemRequest(BaseSchema):
-    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
     quantity: Annotated[int, Field(ge=1, examples=[2])]
     price_at_order: Annotated[
         int, Field(description="주문 시점의 메뉴 가격", examples=[8000])
@@ -248,7 +252,9 @@ class OrderItemServedUpdateResponse(BaseSchema):
         UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440003"])
     ]
     order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
-    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
     selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
     is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
 
@@ -257,7 +263,9 @@ class OrderItemBrief(BaseSchema):
     order_item_id: Annotated[
         UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440003"])
     ]
-    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
     menu_name: Annotated[str, Field(examples=["치킨 가라아게"])]
     quantity: Annotated[int, Field(ge=1, examples=[2])]
     selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
@@ -265,7 +273,9 @@ class OrderItemBrief(BaseSchema):
 
 
 class OrderItemSummaryResponse(BaseSchema):
-    menu_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])]
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
     menu_name: Annotated[str, Field(examples=["좋은토닉"])]
     total_quantity: Annotated[
         int, Field(description="메뉴+옵션 조합의 합계 수량", examples=[2])

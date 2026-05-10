@@ -1,11 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database.models import get_db, Menu
 from ..database.crud import (
     get_menus_from_db,
     add_new_menu_to_db,
+    delete_menu_from_db,
 )
 from ..schemas.rest_schemas import MenuResponse, MenuCreateRequest
 
@@ -70,6 +71,37 @@ async def create_menu(
             detail=f"[❌ 잘못된 요청] {str(ve)}",
         )
     except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.delete(
+    "/menus/{menu_id}",
+    operation_id="delete_menu",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["menu"],
+    summary="특정 메뉴 삭제",
+)
+async def delete_menu(
+    menu_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    지정한 UUID를 가진 메뉴를 삭제합니다.\n
+    연결된 주문 항목(order_items)의 menu_id는 NULL로 변경됩니다.
+    """
+    try:
+        await delete_menu_from_db(db, menu_id)
+        return
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 메뉴를 찾을 수 없음] {str(nrfe)}",
+        )
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"[⚠️ 서버 오류] {str(e)}",
