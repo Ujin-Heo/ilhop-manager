@@ -188,6 +188,17 @@ export interface MetaDataUpdateRequest {
   maxTableCol?: number;
 }
 
+// --- Admin Interfaces ---
+
+export interface AdminLoginRequest {
+  password: string;
+}
+
+export interface AdminPasswordUpdateRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 // --- WebSocket Message Interfaces ---
 
 export interface OrderCreatedMessage {

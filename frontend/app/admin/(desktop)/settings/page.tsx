@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { getMenus } from "@/lib/api/menus";
 import { getMetadata, updateMetadata } from "@/lib/api/metadata";
-import { MenuResponse, MetaDataResponse, MetaDataUpdateRequest } from "@/lib/definitions";
+import { updateAdminPassword } from "@/lib/api/admin";
+import { MenuResponse, MetaDataResponse, MetaDataUpdateRequest, AdminPasswordUpdateRequest } from "@/lib/definitions";
 import ExistingMenuCard from "@/components/admin/existing-menu-card";
 import NewMenuForm from "@/components/admin/new-menu-form";
 
@@ -18,6 +19,15 @@ export default function Page() {
   const [metaError, setMetaError] = useState<string | null>(null);
   const [isEditingMeta, setIsEditingMeta] = useState(false);
   const [formData, setFormData] = useState<MetaDataUpdateRequest>({});
+
+  const [pwFormData, setPwFormData] = useState<AdminPasswordUpdateRequest>({
+    currentPassword: "",
+    newPassword: "",
+  });
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState<string | null>(null);
 
   const fetchMenus = async () => {
     try {
@@ -71,6 +81,29 @@ export default function Page() {
       );
     } finally {
       setMetaLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError(null);
+    setPwSuccess(null);
+
+    if (pwFormData.newPassword !== confirmPassword) {
+      setPwError("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+      return;
+    }
+
+    try {
+      setPwLoading(true);
+      await updateAdminPassword(pwFormData);
+      setPwSuccess("비밀번호가 성공적으로 변경되었습니다.");
+      setPwFormData({ currentPassword: "", newPassword: "" });
+      setConfirmPassword("");
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : "비밀번호 변경에 실패했습니다.");
+    } finally {
+      setPwLoading(false);
     }
   };
 
@@ -162,6 +195,58 @@ export default function Page() {
             </div>
           </form>
         )}
+      </section>
+
+      {/* 관리자 비밀번호 변경 섹션 */}
+      <section className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-light-gray">
+        <h2 className="text-2xl font-bold mb-6 text-black">관리자 비밀번호 변경</h2>
+        
+        {pwError && <div className="text-red-600 mb-4">{pwError}</div>}
+        {pwSuccess && <div className="text-green-600 mb-4">{pwSuccess}</div>}
+
+        <form onSubmit={handleUpdatePassword} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-deep-brown">현재 비밀번호</label>
+              <input
+                type="password"
+                required
+                value={pwFormData.currentPassword}
+                onChange={(e) => setPwFormData({ ...pwFormData, currentPassword: e.target.value })}
+                className="p-2 border border-light-gray rounded bg-warm-white text-black"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-deep-brown">새 비밀번호</label>
+              <input
+                type="password"
+                required
+                value={pwFormData.newPassword}
+                onChange={(e) => setPwFormData({ ...pwFormData, newPassword: e.target.value })}
+                className="p-2 border border-light-gray rounded bg-warm-white text-black"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-deep-brown">비밀번호 확인</label>
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="p-2 border border-light-gray rounded bg-warm-white text-black"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={pwLoading}
+              className="px-6 py-2 bg-deep-brown text-white rounded hover:bg-sepia transition-colors disabled:opacity-50"
+            >
+              {pwLoading ? "변경 중..." : "비밀번호 변경"}
+            </button>
+          </div>
+        </form>
       </section>
 
       {/* 메뉴 설정 섹션 */}

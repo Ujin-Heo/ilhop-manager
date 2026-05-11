@@ -178,3 +178,10 @@ class MetaData(Base):
     account_holder: Mapped[str] = mapped_column(String(50), nullable=False)
     max_table_row: Mapped[int] = mapped_column(Integer, nullable=False)
     max_table_col: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class AdminConfig(Base):
+    __tablename__ = "admin_config"
+
+    id: Mapped[str] = mapped_column(String(50), primary_key=True, default="primary")
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)

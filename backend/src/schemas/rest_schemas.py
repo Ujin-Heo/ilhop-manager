@@ -349,3 +349,20 @@ class MetaDataUpdateRequest(BaseSchema):
     account_holder: Annotated[str | None, Field(examples=["홍길동"])] = None
     max_table_row: Annotated[int | None, Field(examples=[5])] = None
     max_table_col: Annotated[int | None, Field(examples=[5])] = None
+
+
+class AdminLoginRequest(BaseSchema):
+    password: Annotated[
+        str,
+        Field(description="관리자 비밀번호", max_length=72, examples=["admin1234"]),
+    ]
+
+
+class AdminPasswordUpdateRequest(BaseSchema):
+    current_password: Annotated[
+        str, Field(description="현재 비밀번호", max_length=72, examples=["admin1234"])
+    ]
+    new_password: Annotated[
+        str,
+        Field(description="새로운 비밀번호", max_length=72, examples=["newadmin5678"]),
+    ]
