@@ -251,18 +251,18 @@ function CustomerTableMain({
           <div className="flex flex-1 w-full items-center justify-center">
             <CustomerTableAction
               onClick={handleAddCustomer}
-              className="flex items-center justify-center gap-1 border border-silver bg-white/20 py-2 font-bold text-med-gray hover:bg-white/40"
+              className="flex items-center justify-center gap-2 border border-silver bg-white/20 pb-4 font-bold text-sm text-med-gray hover:bg-white/40"
             >
-              <UserPlus size={16} />
+              <UserPlus size={18} />
               <span>손님 추가</span>
             </CustomerTableAction>
           </div>
         )
       )}
 
-      {isOrdered && !isEditing && (
-        <CustomerTableFooter>
-          <CustomerTableAction onClick={handleClearTable}>
+      {isOrdered && (
+        <CustomerTableFooter className={cn(isEditing && "invisible")}>
+          <CustomerTableAction onClick={handleClearTable} disabled={isEditing}>
             테이블 비우기
           </CustomerTableAction>
         </CustomerTableFooter>
@@ -275,7 +275,7 @@ function CustomerTableMain({
               e.stopPropagation();
               onDelete?.();
             }}
-            className="flex items-center gap-1 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-bold text-red-500 shadow-sm transition-colors hover:bg-red-50"
+            className="flex items-center gap-1 rounded-lg border border-red-200 bg-white mt-3 px-3 py-1.5 text-xs font-bold text-red-500 shadow-sm transition-colors hover:bg-red-50"
           >
             <Trash2 size={14} />
             테이블 삭제
