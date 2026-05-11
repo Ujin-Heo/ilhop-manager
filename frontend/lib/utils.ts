@@ -6,12 +6,26 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Formats an ISO date string to HH:mm format.
- * Example: 2024-04-12T18:25:30Z -> 18:25
+ * Parses a date string from the DB (YYYY-MM-DD HH:mm:ss).
+ * If the string doesn't contain timezone info, it's treated as Local Time.
+ */
+export function parseDBDate(dateString: string): Date {
+  if (!dateString) return new Date();
+
+  // Replace space with T for ISO compliance
+  const normalized = dateString.replace(" ", "T");
+
+  // If it already has Z or a +/- offset, new Date() will handle it as UTC/Offset
+  // Otherwise, new Date("YYYY-MM-DDTHH:mm:ss") treats it as LOCAL time in most browsers
+  return new Date(normalized);
+}
+
+/**
+ * Formats a date string to HH:mm format (Local Time).
  */
 export function formatEntryTime(dateString: string): string {
-  const date = new Date(dateString);
-  const hours = date.getUTCHours().toString().padStart(2, "0");
+  const date = parseDBDate(dateString);
+  const hours = date.getHours().toString().padStart(2, "0");
   const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 }
@@ -24,7 +38,7 @@ export function calculateRemainingTime(
   entryTime: string,
   timeLimitMinutes: number = 90,
 ): number {
-  const entryDate = new Date(entryTime);
+  const entryDate = parseDBDate(entryTime);
   const limitDate = new Date(entryDate.getTime() + timeLimitMinutes * 60000);
   const currentDate = new Date();
   const diffMs = limitDate.getTime() - currentDate.getTime();
@@ -32,14 +46,13 @@ export function calculateRemainingTime(
 }
 
 /**
- * Formats an ISO date string to hh:mm:ss format.
- * Example: 2024-04-12T18:25:30Z -> 18:25:30
+ * Formats a date string to HH:mm:ss format (Local Time).
  */
 export function formatOrderTime(dateString: string): string {
-  const date = new Date(dateString);
-  const hours = date.getUTCHours().toString().padStart(2, "0");
-  const minutes = date.getUTCMinutes().toString().padStart(2, "0");
-  const seconds = date.getUTCSeconds().toString().padStart(2, "0");
+  const date = parseDBDate(dateString);
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 }
 
