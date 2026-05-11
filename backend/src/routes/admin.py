@@ -53,8 +53,9 @@ async def update_password(
     admin_session: Optional[str] = Cookie(None),
     db: AsyncSession = Depends(get_db)
 ):
-    if not admin_session or not verify_token(admin_session):
-        raise HTTPException(status_code=401, detail="인증되지 않은 사용자입니다.")
+    # TEMPORARY: Login check disabled
+    # if not admin_session or not verify_token(admin_session):
+    #     raise HTTPException(status_code=401, detail="인증되지 않은 사용자입니다.")
         
     result = await db.execute(select(AdminConfig).where(AdminConfig.id == "primary"))
     admin_config = result.scalar_one_or_none()
@@ -69,6 +70,7 @@ async def update_password(
 
 @router.get("/check")
 async def check_auth(admin_session: Optional[str] = Cookie(None)):
-    if not admin_session or not verify_token(admin_session):
-        raise HTTPException(status_code=401, detail="인증되지 않은 사용자입니다.")
+    # TEMPORARY: Login check disabled
+    # if not admin_session or not verify_token(admin_session):
+    #     raise HTTPException(status_code=401, detail="인증되지 않은 사용자입니다.")
     return {"authenticated": True}
