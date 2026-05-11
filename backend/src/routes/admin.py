@@ -35,8 +35,8 @@ async def admin_login(
         key="admin_session",
         value=token,
         httponly=True,
-        secure=True, # Should be True in production (HTTPS)
-        samesite="lax",
+        secure=True,     # 배포 환경(HTTPS)에서는 반드시 True여야 함
+        samesite="none", # 서로 다른 도메인 간 쿠키 전송 허용
         max_age=60 * 60 * 24 # 1 day
     )
     
@@ -44,7 +44,11 @@ async def admin_login(
 
 @router.post("/logout")
 async def admin_logout(response: Response):
-    response.delete_cookie("admin_session")
+    response.delete_cookie(
+        "admin_session",
+        secure=True,
+        samesite="none"
+    )
     return {"message": "로그아웃 성공"}
 
 @router.patch("/password")

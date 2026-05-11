@@ -17,7 +17,9 @@ export async function getCustomers(
   if (tableNum !== undefined) params.append('tableNum', tableNum.toString());
   if (isActive !== undefined) params.append('isActive', isActive.toString());
 
-  const response = await fetch(`${BASE_URL}/customers?${params.toString()}`);
+  const response = await fetch(`${BASE_URL}/customers?${params.toString()}`, {
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -39,6 +41,7 @@ export async function createCustomer(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -59,6 +62,7 @@ export async function updateCustomerActiveStatus(
   const params = new URLSearchParams({ isActive: isActive.toString() });
   const response = await fetch(`${BASE_URL}/customers/${customerId}?${params.toString()}`, {
     method: 'PATCH',
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -80,7 +84,10 @@ export async function getCustomerOrderSummary(
   if (isPaid !== undefined) params.append('isPaid', isPaid.toString());
 
   const response = await fetch(
-    `${BASE_URL}/customers/${customerId}/order-summary?${params.toString()}`
+    `${BASE_URL}/customers/${customerId}/order-summary?${params.toString()}`,
+    {
+      credentials: 'include',
+    }
   );
 
   if (!response.ok) {

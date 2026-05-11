@@ -16,7 +16,9 @@ export async function getOrders(isPaid?: boolean): Promise<OrderDetail[]> {
   const params = new URLSearchParams();
   if (isPaid !== undefined) params.append('isPaid', isPaid.toString());
 
-  const response = await fetch(`${BASE_URL}/orders?${params.toString()}`);
+  const response = await fetch(`${BASE_URL}/orders?${params.toString()}`, {
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -38,6 +40,7 @@ export async function createOrder(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -61,6 +64,7 @@ export async function updateOrderIsPaid(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -85,6 +89,7 @@ export async function updateOrderMemo(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
     ...options,
   });
 
