@@ -30,7 +30,11 @@
   - Use descriptive names (e.g., `--color-white`) and `oklch` format for new colors.
 
 ## 4. Infrastructure & Security
-- **Cross-Domain Cookies**: For production (Vercel + Railway), authentication cookies (e.g., `admin_session`) MUST use:
-  - `samesite="none"`
-  - `secure=True` (requires HTTPS)
-- **Environment Variables**: Sensitive keys like `SECRET_KEY` must be managed via environment variables (Railway/`.env`) and never hardcoded in the codebase.
+- **Cross-Domain Cookies (Production)**: When frontend (Vercel) and backend (Railway) are on different domains, browsers block third-party cookies by default.
+- **Solution (Next.js Rewrite)**:
+  - **Proxy Configuration**: Use `async rewrites()` in `next.config.ts` to map `/api/:path*` to the backend URL. This makes cookies "first-party".
+  - **Base URL Strategy**:
+    - **Client-side**: Use `'/api'` (relative path) to trigger the Next.js rewrite.
+    - **Server-side**: Use the full backend URL (e.g., `process.env.NEXT_PUBLIC_API_URL`) as rewrites don't apply to server-side `fetch`.
+- **Cookie Attributes**: Authentication cookies (e.g., `admin_session`) MUST use `samesite="none"` and `secure=True`.
+- **Environment Variables**: Sensitive keys like `SECRET_KEY` must be managed via environment variables (Railway/`.env`) and never hardcoded.

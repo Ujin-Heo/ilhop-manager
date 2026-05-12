@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 class MultipleColorSQLFormatter(logging.Formatter):
@@ -17,6 +18,7 @@ class MultipleColorSQLFormatter(logging.Formatter):
 
     # SQL 키워드별 고유 색상 매핑
     SQL_COLORS = {
+        # Commands (DQL/CRUD)
         "SELECT": CYAN,
         "GET": CYAN,
         "INSERT": GREEN,
@@ -24,21 +26,85 @@ class MultipleColorSQLFormatter(logging.Formatter):
         "PATCH": YELLOW,
         "UPDATE": YELLOW,
         "DELETE": RED,
+        # Transactions & Returning
         "BEGIN": MAGENTA,
         "COMMIT": MAGENTA,
         "ROLLBACK": RED,
-        "INFO": BOLD,
+        "RETURNING": MAGENTA,
+        # Structural & Conditions (BLUE)
         "IN": BLUE,
         "AS": BLUE,
         "ON": BLUE,
         "FROM": BLUE,
         "WHERE": BLUE,
-        "RETURNING": MAGENTA,
+        "AND": BLUE,
+        "OR": BLUE,
+        "NOT": BLUE,
+        "IS": BLUE,
+        "NULL": BLUE,
+        "EXISTS": BLUE,
+        "BETWEEN": BLUE,
+        "LIKE": BLUE,
+        # Joins
+        "JOIN": BLUE,
+        "INNER": BLUE,
+        "LEFT": BLUE,
+        "RIGHT": BLUE,
+        "OUTER": BLUE,
+        "CROSS": BLUE,
+        "NATURAL": BLUE,
+        # Sorting & Grouping
+        "ORDER": BLUE,
+        "BY": BLUE,
+        "GROUP": BLUE,
+        "HAVING": BLUE,
+        "LIMIT": BLUE,
+        "OFFSET": BLUE,
+        "DISTINCT": BLUE,
+        "DESC": BLUE,
+        "ASC": BLUE,
+        # Modification Clauses
+        "INTO": BLUE,
+        "VALUES": BLUE,
+        "SET": BLUE,
+        # Case Expressions
+        "CASE": BLUE,
+        "WHEN": BLUE,
+        "THEN": BLUE,
+        "ELSE": BLUE,
+        "END": BLUE,
+        # Common Data Types
+        "INTEGER": BLUE,
+        "VARCHAR": BLUE,
+        "BIGINT": BLUE,
+        "TEXT": BLUE,
+        "BOOLEAN": BLUE,
+        "DATE": BLUE,
+        "TIMESTAMP": BLUE,
+        "NUMERIC": BLUE,
+        "JSONB": BLUE,
+        "UUID": BLUE,
+        # Others & Utility Functions
+        "DEFAULT": BLUE,
+        "UNION": BLUE,
+        "ALL": BLUE,
+        "WITH": BLUE,
+        "RECURSIVE": BLUE,
+        "CAST": BLUE,
+        "CONFLICT": BLUE,
+        "DO": BLUE,
+        "NOTHING": BLUE,
+        "COALESCE": BLUE,
+        "NULLIF": BLUE,
+        "TRUNCATE": BLUE,
+        "INFO": BOLD,
     }
 
     def format(self, record):
-        # 1. hh:mm:ss 시간 추출 및 GRAY 색상 적용
-        time_str = datetime.fromtimestamp(record.created).strftime("%H:%M:%S")
+        # 1. hh:mm:ss 시간 추출 및 GRAY 색상 적용 (KST 시간대 강제 적용)
+        tz = ZoneInfo("Asia/Seoul")
+        dt = datetime.fromtimestamp(record.created, tz=tz)
+        time_str = dt.strftime("%H:%M:%S")
         colored_time = f"{self.GRAY}[{time_str}]{self.RESET}"
 
         # 2. 메시지 가져오기
@@ -46,7 +112,8 @@ class MultipleColorSQLFormatter(logging.Formatter):
 
         # 3. [raw sql], [generated in...] 등 대괄호([]) 안의 내용 삭제
         # 대괄호로 시작해서 대괄호로 끝나는 패턴을 찾아 빈 문자열로 대체
-        message = re.sub(r"\[.*?\]", "", message).strip()
+        # message = re.sub(r"\[.*?\]", "", message).strip()
+        # -> 누락되는 로그가 있는 것 같아서 일단 비활성화함
 
         # 만약 대괄호를 지웠더니 메시지가 비어있다면 출력하지 않음 (None 방지)
         if not message:
