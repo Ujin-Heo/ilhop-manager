@@ -34,6 +34,7 @@ export interface CustomerBrief {
   customerId: UUID;
   entryTime: ISOString;
   isActive: boolean;
+  isExtended: boolean;
 }
 
 // --- Menu Interfaces ---
@@ -179,6 +180,8 @@ export interface MetaDataResponse {
   accountHolder: string;
   maxTableRow: number;
   maxTableCol: number;
+  standardTime: number;
+  extraTime: number;
 }
 
 export interface MetaDataUpdateRequest {
@@ -186,6 +189,8 @@ export interface MetaDataUpdateRequest {
   accountHolder?: string;
   maxTableRow?: number;
   maxTableCol?: number;
+  standardTime?: number;
+  extraTime?: number;
 }
 
 // --- Admin Interfaces ---

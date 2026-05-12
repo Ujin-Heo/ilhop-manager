@@ -84,12 +84,23 @@ export default function Page() {
                 tableNum={table.tableNum}
                 currentCustomer={table.currentCustomer}
                 isEditing={isEditing}
+                standardTime={metadata?.standardTime}
+                extraTime={metadata?.extraTime}
                 onDelete={() => handleDeleteTable(table.tableId)}
                 onCustomerCreated={(newCustomer) => {
                   setTableInfos((prev) =>
                     prev.map((t) =>
                       t.tableId === table.tableId
                         ? { ...t, currentCustomer: newCustomer }
+                        : t,
+                    ),
+                  );
+                }}
+                onCustomerUpdated={(updatedCustomer) => {
+                  setTableInfos((prev) =>
+                    prev.map((t) =>
+                      t.tableId === table.tableId
+                        ? { ...t, currentCustomer: updatedCustomer }
                         : t,
                     ),
                   );

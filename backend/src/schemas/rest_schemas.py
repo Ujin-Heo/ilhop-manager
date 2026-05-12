@@ -50,6 +50,21 @@ class TableUpdateRequest(BaseSchema):
     ] = None
 
 
+class CustomerBrief(BaseSchema):
+    customer_id: Annotated[
+        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
+    ]
+    entry_time: Annotated[
+        datetime,
+        Field(
+            description="입장 시각 (프론트엔드에서 경과 시간 계산용)",
+            examples=["2024-04-12T18:25:30Z"],
+        ),
+    ]
+    is_active: Annotated[bool, Field(examples=[True])]
+    is_extended: Annotated[bool, Field(examples=[False])]
+
+
 class TableStatus(BaseSchema):
     table_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])]
     table_num: Annotated[
@@ -80,20 +95,6 @@ class CustomerCreateRequest(BaseSchema):
     table_num: Annotated[
         int, Field(description="손님이 착석한 테이블 번호", examples=[7])
     ]
-
-
-class CustomerBrief(BaseSchema):
-    customer_id: Annotated[
-        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440000"])
-    ]
-    entry_time: Annotated[
-        datetime,
-        Field(
-            description="입장 시각 (프론트엔드에서 경과 시간 계산용)",
-            examples=["2024-04-12T18:25:30Z"],
-        ),
-    ]
-    is_active: Annotated[bool, Field(examples=[True])]
 
 
 class MenuCreateRequest(BaseSchema):
@@ -181,6 +182,61 @@ class MenuResponse(BaseSchema):
     ] = None
 
 
+class OrderItemRequest(BaseSchema):
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
+    quantity: Annotated[int, Field(ge=1, examples=[2])]
+    price_at_order: Annotated[
+        int, Field(description="주문 시점의 메뉴 가격", examples=[8000])
+    ]
+    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
+
+
+class OrderItemServedUpdateRequest(BaseSchema):
+    is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
+
+
+class OrderItemServedUpdateResponse(BaseSchema):
+    order_item_id: Annotated[
+        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440003"])
+    ]
+    order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
+    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
+    is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
+
+
+class OrderItemBrief(BaseSchema):
+    order_item_id: Annotated[
+        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440003"])
+    ]
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
+    menu_name: Annotated[str, Field(examples=["치킨 가라아게"])]
+    quantity: Annotated[int, Field(ge=1, examples=[2])]
+    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
+    is_served: Annotated[bool, Field(examples=[False])]
+
+
+class OrderItemSummaryResponse(BaseSchema):
+    menu_id: Annotated[
+        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
+    ] = None
+    menu_name: Annotated[str, Field(examples=["좋은토닉"])]
+    total_quantity: Annotated[
+        int, Field(description="메뉴+옵션 조합의 합계 수량", examples=[2])
+    ]
+    unit_price: Annotated[int, Field(examples=[5000])]
+    selected_option: Annotated[
+        str | None,
+        Field(description="선택된 옵션명 (없으면 null)", examples=["살구맛"]),
+    ] = None
+
+
 class OrderCreateRequest(BaseSchema):
     customer_id: Annotated[
         UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440005"])
@@ -262,61 +318,6 @@ class OrderSummaryResponse(BaseSchema):
     order_items: list[OrderItemSummaryResponse]
 
 
-class OrderItemRequest(BaseSchema):
-    menu_id: Annotated[
-        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
-    ] = None
-    quantity: Annotated[int, Field(ge=1, examples=[2])]
-    price_at_order: Annotated[
-        int, Field(description="주문 시점의 메뉴 가격", examples=[8000])
-    ]
-    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
-
-
-class OrderItemServedUpdateRequest(BaseSchema):
-    is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
-
-
-class OrderItemServedUpdateResponse(BaseSchema):
-    order_item_id: Annotated[
-        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440003"])
-    ]
-    order_id: Annotated[UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440002"])]
-    menu_id: Annotated[
-        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
-    ] = None
-    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
-    is_served: Annotated[bool, Field(description="서빙 완료 여부", examples=[True])]
-
-
-class OrderItemBrief(BaseSchema):
-    order_item_id: Annotated[
-        UUID, Field(examples=["550e8400-e29b-41d4-a716-446655440003"])
-    ]
-    menu_id: Annotated[
-        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
-    ] = None
-    menu_name: Annotated[str, Field(examples=["치킨 가라아게"])]
-    quantity: Annotated[int, Field(ge=1, examples=[2])]
-    selected_option: Annotated[str | None, Field(examples=["살구맛"])] = None
-    is_served: Annotated[bool, Field(examples=[False])]
-
-
-class OrderItemSummaryResponse(BaseSchema):
-    menu_id: Annotated[
-        UUID | None, Field(examples=["550e8400-e29b-41d4-a716-446655440001"])
-    ] = None
-    menu_name: Annotated[str, Field(examples=["좋은토닉"])]
-    total_quantity: Annotated[
-        int, Field(description="메뉴+옵션 조합의 합계 수량", examples=[2])
-    ]
-    unit_price: Annotated[int, Field(examples=[5000])]
-    selected_option: Annotated[
-        str | None,
-        Field(description="선택된 옵션명 (없으면 null)", examples=["살구맛"]),
-    ] = None
-
-
 class PaymentConfirmInfo(BaseSchema):
     title: Annotated[
         str | None, Field(description="알림 제목", examples=["1,024원 입금"])
@@ -340,6 +341,8 @@ class MetaDataResponse(BaseSchema):
     account_holder: Annotated[str, Field(examples=["홍길동"])]
     max_table_row: Annotated[int, Field(examples=[5])]
     max_table_col: Annotated[int, Field(examples=[5])]
+    standard_time: Annotated[int, Field(description="기본 이용 시간 (분)", examples=[90])]
+    extra_time: Annotated[int, Field(description="연장 시 추가 시간 (분)", examples=[60])]
 
 
 class MetaDataUpdateRequest(BaseSchema):
@@ -347,6 +350,8 @@ class MetaDataUpdateRequest(BaseSchema):
     account_holder: Annotated[str | None, Field(examples=["홍길동"])] = None
     max_table_row: Annotated[int | None, Field(examples=[5])] = None
     max_table_col: Annotated[int | None, Field(examples=[5])] = None
+    standard_time: Annotated[int | None, Field(description="기본 이용 시간 (분)", examples=[90])] = None
+    extra_time: Annotated[int | None, Field(description="연장 시 추가 시간 (분)", examples=[60])] = None
 
 
 class AdminLoginRequest(BaseSchema):

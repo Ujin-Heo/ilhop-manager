@@ -92,6 +92,7 @@ class Customer(Base):
         DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_extended: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
     table: Mapped["Table"] = relationship(back_populates="customers")
@@ -178,6 +179,8 @@ class MetaData(Base):
     account_holder: Mapped[str] = mapped_column(String(50), nullable=False)
     max_table_row: Mapped[int] = mapped_column(Integer, nullable=False)
     max_table_col: Mapped[int] = mapped_column(Integer, nullable=False)
+    standard_time: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("90"))
+    extra_time: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("60"))
 
 
 class AdminConfig(Base):

@@ -53,6 +53,8 @@ export default function Page() {
         accountHolder: data.accountHolder,
         maxTableRow: data.maxTableRow,
         maxTableCol: data.maxTableCol,
+        standardTime: data.standardTime,
+        extraTime: data.extraTime,
       });
     } catch (err) {
       setMetaError(
@@ -157,6 +159,26 @@ export default function Page() {
                   disabled={!isEditingMeta}
                   value={formData.maxTableCol || ""}
                   onChange={(e) => setFormData({ ...formData, maxTableCol: parseInt(e.target.value) })}
+                  className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-deep-brown">기본 이용 시간 (분)</label>
+                <input
+                  type="number"
+                  disabled={!isEditingMeta}
+                  value={formData.standardTime || ""}
+                  onChange={(e) => setFormData({ ...formData, standardTime: parseInt(e.target.value) })}
+                  className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-deep-brown">연장 추가 시간 (분)</label>
+                <input
+                  type="number"
+                  disabled={!isEditingMeta}
+                  value={formData.extraTime || ""}
+                  onChange={(e) => setFormData({ ...formData, extraTime: parseInt(e.target.value) })}
                   className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
                 />
               </div>

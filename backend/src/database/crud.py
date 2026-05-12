@@ -222,6 +222,27 @@ async def update_customer_active_status_in_db(
     return customer_to_update
 
 
+async def update_customer_is_extended_in_db(
+    db: AsyncSession, customer_id: str, is_extended: bool
+) -> Customer:
+    """
+    특정 고객의 시간 연장 여부(is_extended)를 업데이트합니다.
+    """
+    stmt = select(Customer).where(Customer.customer_id == customer_id)
+    result = await db.execute(stmt)
+    customer_to_update = result.scalar_one_or_none()
+
+    if not customer_to_update:
+        raise NoResultFound(
+            f"요청한 고객 ID({customer_id})에 해당하는 고객이 없습니다."
+        )
+
+    customer_to_update.is_extended = is_extended
+    await db.commit()
+
+    return customer_to_update
+
+
 async def get_customer_order_summary_from_db(
     db: AsyncSession, customer_id: str, is_paid: bool | None
 ) -> OrderSummaryResponse:
@@ -661,6 +682,8 @@ async def get_metadata_from_db(db: AsyncSession) -> MetaData:
             account_holder="기본 소유주",
             max_table_row=5,
             max_table_col=5,
+            standard_time=90,
+            extra_time=60,
         )
         db.add(metadata)
         await db.commit()

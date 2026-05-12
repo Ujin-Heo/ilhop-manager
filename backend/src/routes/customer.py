@@ -7,6 +7,7 @@ from ..database.crud import (
     get_customers_from_db,
     add_new_customer_to_db,
     update_customer_active_status_in_db,
+    update_customer_is_extended_in_db,
     get_customer_order_summary_from_db,
 )
 from ..schemas.rest_schemas import (
@@ -126,6 +127,41 @@ async def update_customer_active_status(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"[❌ 잘못된 요청] {str(ve)}",
+        )
+    except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.patch(
+    "/customers/{customer_id}/is-extended",
+    operation_id="update_customer_is_extended",
+    response_model=CustomerBrief,
+    status_code=status.HTTP_200_OK,
+    tags=["customer"],
+    summary="특정 고객의 시간 연장 여부를 업데이트함",
+)
+async def update_customer_is_extended(
+    customer_id: str,
+    is_extended: Annotated[bool, Query(alias="isExtended")],
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    특정 고객 ID를 사용하여 해당 고객의 `isExtended` 상태를 변경함.
+    `true`로 설정 시 프론트엔드에서 이용 제한 시간이 늘어남.
+    """
+    try:
+        updated_customer: Customer = await update_customer_is_extended_in_db(
+            db, customer_id, is_extended
+        )
+        return updated_customer
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 헤당 데이터를 찾을 수 없음] {str(nrfe)}",
         )
     except Exception as e:  # 서버 내부 에러
         raise HTTPException(

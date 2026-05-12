@@ -36,13 +36,16 @@ export function formatEntryTime(dateString: string): string {
  */
 export function calculateRemainingTime(
   entryTime: string,
-  timeLimitMinutes: number = 90,
+  standardTimeMinutes: number = 90,
+  isExtended: boolean = false,
+  extraTimeMinutes: number = 60,
 ): number {
   const entryDate = parseDBDate(entryTime);
-  const limitDate = new Date(entryDate.getTime() + timeLimitMinutes * 60000);
+  const totalLimit = isExtended ? standardTimeMinutes + extraTimeMinutes : standardTimeMinutes;
+  const limitDate = new Date(entryDate.getTime() + totalLimit * 60000);
   const currentDate = new Date();
   const diffMs = limitDate.getTime() - currentDate.getTime();
-  return Math.max(0, Math.floor(diffMs / 60000));
+  return Math.max(-999, Math.floor(diffMs / 60000));
 }
 
 /**

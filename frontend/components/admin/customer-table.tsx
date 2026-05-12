@@ -8,6 +8,7 @@ import { createTable } from "@/lib/api/tables";
 import {
   createCustomer,
   updateCustomerActiveStatus,
+  updateCustomerIsExtended,
 } from "@/lib/api/customers";
 
 /**
@@ -181,10 +182,13 @@ interface CustomerTableMainProps {
   currentCustomer?: CustomerBrief | null;
   onCustomerCleared?: () => void;
   onCustomerCreated?: (customer: CustomerBrief) => void;
+  onCustomerUpdated?: (customer: CustomerBrief) => void;
   onClick?: () => void;
   onDelete?: () => void;
   isEditing?: boolean;
   className?: string;
+  standardTime?: number;
+  extraTime?: number;
 }
 
 function CustomerTableMain({
@@ -192,16 +196,26 @@ function CustomerTableMain({
   currentCustomer,
   onCustomerCleared,
   onCustomerCreated,
+  onCustomerUpdated,
   onClick,
   onDelete,
   isEditing = false,
   className,
+  standardTime = 90,
+  extraTime = 60,
 }: CustomerTableMainProps) {
   const [isAddingCustomer, setIsAddingCustomer] = React.useState(false);
   const isOrdered = !!currentCustomer;
   const rawEntryTime = currentCustomer?.entryTime;
   const formattedEntryTime = rawEntryTime ? formatEntryTime(rawEntryTime) : "";
-  const remainingTime = rawEntryTime ? calculateRemainingTime(rawEntryTime) : 0;
+  const remainingTime = rawEntryTime
+    ? calculateRemainingTime(
+        rawEntryTime,
+        standardTime,
+        currentCustomer?.isExtended,
+        extraTime,
+      )
+    : 0;
 
   const warning: "none" | "yellow" | "red" = !isOrdered
     ? "none"
@@ -219,6 +233,28 @@ function CustomerTableMain({
       onCustomerCreated?.(newCustomer);
     } catch (error: any) {
       alert(error.message || "손님 추가에 실패했습니다.");
+    }
+  };
+
+  const handleExtend = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentCustomer) return;
+
+    const isExtended = currentCustomer.isExtended;
+    const confirmMsg = isExtended
+      ? "시간 연장을 취소하시겠습니까?"
+      : `이용 시간을 ${extraTime}분 연장하시겠습니까?`;
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const updatedCustomer = await updateCustomerIsExtended(
+        currentCustomer.customerId,
+        !isExtended,
+      );
+      onCustomerUpdated?.(updatedCustomer);
+    } catch (error: any) {
+      alert(error.message || "상태 변경에 실패했습니다.");
     }
   };
 
@@ -251,7 +287,22 @@ function CustomerTableMain({
       onClick={handleTableClick}
     >
       <CustomerTableHeader>
-        <CustomerTableNumber>{tableNum}</CustomerTableNumber>
+        <div className="flex items-center gap-1.5">
+          <CustomerTableNumber>{tableNum}</CustomerTableNumber>
+          {isOrdered && !isEditing && (
+            <button
+              onClick={handleExtend}
+              className={cn(
+                "px-1.5 py-0.5 rounded text-[10px] font-bold border transition-all",
+                currentCustomer.isExtended
+                  ? "bg-black text-white border-black hover:bg-black/80"
+                  : "bg-white text-black border-silver hover:bg-gray",
+              )}
+            >
+              연장
+            </button>
+          )}
+        </div>
         {isOrdered && (
           <CustomerTableTime>{formattedEntryTime} 입장</CustomerTableTime>
         )}

@@ -70,6 +70,29 @@ export async function updateCustomerActiveStatus(
 }
 
 /**
+ * 특정 고객의 시간 연장 여부를 업데이트함
+ */
+export async function updateCustomerIsExtended(
+  customerId: string,
+  isExtended: boolean
+): Promise<CustomerBrief> {
+  const params = new URLSearchParams({ isExtended: isExtended.toString() });
+  const response = await fetch(
+    `${BASE_URL}/customers/${customerId}/is-extended?${params.toString()}`,
+    {
+      method: 'PATCH',
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || '시간 연장에 실패했습니다.');
+  }
+
+  return response.json();
+}
+
+/**
  * 특정 고객의 주문 내역 요약 조회
  */
 export async function getCustomerOrderSummary(
