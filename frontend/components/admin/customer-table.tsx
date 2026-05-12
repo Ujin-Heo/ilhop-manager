@@ -15,15 +15,24 @@ import {
  */
 interface TableProps extends React.ComponentProps<"div"> {
   ordered?: boolean;
+  warning?: "none" | "yellow" | "red";
 }
 
-function CustomerTable({ className, ordered = false, ...props }: TableProps) {
+function CustomerTable({
+  className,
+  ordered = false,
+  warning = "none",
+  ...props
+}: TableProps) {
   return (
     <div
-      data-ordered={ordered}
+      data-ordered={ordered && warning === "none"}
+      data-warning={warning}
       className={cn(
         "group/ct relative flex w-34 h-30 p-2 flex-col justify-between items-center shrink-0 rounded-md bg-white text-med-gray transition-all duration-200 cursor-pointer select-none border border-transparent hover:shadow-md",
         "data-[ordered=true]:bg-blue data-[ordered=true]:text-white",
+        "data-[warning=yellow]:bg-warning-yellow data-[warning=yellow]:text-black",
+        "data-[warning=red]:bg-warning-red data-[warning=red]:text-white",
         className,
       )}
       {...props}
@@ -194,6 +203,14 @@ function CustomerTableMain({
   const formattedEntryTime = rawEntryTime ? formatEntryTime(rawEntryTime) : "";
   const remainingTime = rawEntryTime ? calculateRemainingTime(rawEntryTime) : 0;
 
+  const warning: "none" | "yellow" | "red" = !isOrdered
+    ? "none"
+    : remainingTime < 0
+      ? "red"
+      : remainingTime < 30
+        ? "yellow"
+        : "none";
+
   const handleAddCustomer = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -230,6 +247,7 @@ function CustomerTableMain({
     <CustomerTable
       className={cn(className, isEditing && "cursor-default hover:shadow-none")}
       ordered={isOrdered}
+      warning={warning}
       onClick={handleTableClick}
     >
       <CustomerTableHeader>
@@ -242,8 +260,19 @@ function CustomerTableMain({
       {isOrdered ? (
         <CustomerTableContent>
           <div className="w-1/6 shrink-0" /> {/* Spacer */}
-          <CustomerTableValue>{remainingTime}분</CustomerTableValue>
-          <CustomerTableUnit>남음</CustomerTableUnit>
+          {remainingTime < 0 ? (
+            <>
+              <CustomerTableValue>
+                {Math.abs(remainingTime)}분
+              </CustomerTableValue>
+              <CustomerTableUnit>초과</CustomerTableUnit>
+            </>
+          ) : (
+            <>
+              <CustomerTableValue>{remainingTime}분</CustomerTableValue>
+              <CustomerTableUnit>남음</CustomerTableUnit>
+            </>
+          )}
         </CustomerTableContent>
       ) : (
         !isEditing &&
