@@ -12,12 +12,16 @@ import {
 /**
  * 전체 주문 내역 리스트 조회 (관리자용)
  */
-export async function getOrders(isPaid?: boolean): Promise<OrderDetail[]> {
+export async function getOrders(
+  isPaid?: boolean,
+  options?: RequestInit
+): Promise<OrderDetail[]> {
   const params = new URLSearchParams();
   if (isPaid !== undefined) params.append('isPaid', isPaid.toString());
 
   const response = await fetch(`${BASE_URL}/orders?${params.toString()}`, {
     credentials: 'include',
+    ...options,
   });
 
   if (!response.ok) {

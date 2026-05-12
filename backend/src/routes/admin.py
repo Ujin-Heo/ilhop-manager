@@ -10,9 +10,19 @@ from ..modules.auth import (
     verify_token,
     get_current_admin,
 )
+from ..database.crud import delete_all_customer_order_data_from_db
 from typing import Optional
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+@router.delete("/data")
+async def clear_data(
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    await delete_all_customer_order_data_from_db(db)
+    return {"message": "모든 손님 및 주문 데이터가 삭제되었습니다."}
 
 
 @router.post("/login")

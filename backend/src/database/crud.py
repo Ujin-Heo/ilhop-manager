@@ -1,4 +1,4 @@
-from sqlalchemy import Row, select, func, update
+from sqlalchemy import Row, select, func, update, delete
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, load_only
@@ -132,8 +132,7 @@ async def get_customers_from_db(
     db: AsyncSession, table_num: int | None, is_active: bool | None
 ) -> list[Customer]:
     """
-    특정 테이블의 활성 고객 1명만 가져옵니다.
-    만약 결과가 2개 이상이면 MultipleResultsFound 에러가 발생합니다.
+    조건에 맞는 고객 목록을 가져옵니다.
     """
     stmt = select(Customer)
 
@@ -144,14 +143,9 @@ async def get_customers_from_db(
         stmt = stmt.where(Customer.is_active == is_active)
 
     result = await db.execute(stmt)
-    customers = result.scalars().one_or_none()
+    customers = result.scalars().all()
 
-    if customers is None:
-        raise NoResultFound(
-            f"{table_num}번 테이블을 현재 사용 중인(is_active==True) 손님이 없습니다."
-        )
-
-    return customers
+    return list(customers)
 
 
 async def add_new_customer_to_db(
@@ -708,3 +702,14 @@ async def update_metadata_in_db(
     await db.refresh(metadata)
 
     return metadata
+
+
+async def delete_all_customer_order_data_from_db(db: AsyncSession) -> None:
+    """
+    Customer, Order, OrderItem 테이블의 모든 데이터를 삭제합니다.
+    외래 키 제약 조건을 고려하여 OrderItem -> Order -> Customer 순서로 삭제합니다.
+    """
+    await db.execute(delete(OrderItem))
+    await db.execute(delete(Order))
+    await db.execute(delete(Customer))
+    await db.commit()

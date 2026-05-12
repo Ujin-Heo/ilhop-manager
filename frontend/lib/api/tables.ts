@@ -8,9 +8,10 @@ import {
 /**
  * 전체 Table 및 현재 이용 현황 조회
  */
-export async function getTables(): Promise<TableStatus[]> {
+export async function getTables(options?: RequestInit): Promise<TableStatus[]> {
   const response = await fetch(`${BASE_URL}/tables`, {
     credentials: 'include',
+    ...options,
   });
 
   if (!response.ok) {

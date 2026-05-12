@@ -56,3 +56,17 @@ export async function checkAdminAuth() {
   });
   return res.ok;
 }
+
+export async function clearAllData() {
+  const res = await fetch(`${BASE_URL}/admin/data`, {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.detail || "데이터 삭제에 실패했습니다.");
+  }
+
+  return res.json();
+}

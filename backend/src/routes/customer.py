@@ -24,7 +24,7 @@ router = APIRouter()
 @router.get(
     "/customers",
     operation_id="get_customers",
-    response_model=CustomerBrief,  # Response Body (Pydantic)
+    response_model=list[CustomerBrief],  # Response Body (Pydantic)
     status_code=status.HTTP_200_OK,
     tags=["customer"],
     summary="조건에 맞는 고객 목록 조회",
@@ -46,11 +46,11 @@ async def get_customers(
 
         return customers
 
-    except MultipleResultsFound as mrfe:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"[❌ 여러 개의 손님 데이터가 반환됨] {str(mrfe)}",
-        )
+    # except MultipleResultsFound as mrfe:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail=f"[❌ 여러 개의 손님 데이터가 반환됨] {str(mrfe)}",
+    #     )
     except NoResultFound as nrfe:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

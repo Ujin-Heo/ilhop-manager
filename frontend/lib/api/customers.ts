@@ -7,17 +7,19 @@ import {
 
 /**
  * 조건에 맞는 고객 정보 조회
- * 주로 특정 테이블을 이용 중인 활성 고객 1명을 가져오는 데 사용됩니다.
  */
 export async function getCustomers(
   tableNum?: number,
-  isActive?: boolean
-): Promise<CustomerBrief> {
+  isActive?: boolean,
+  options?: RequestInit
+): Promise<CustomerBrief[]> {
   const params = new URLSearchParams();
   if (tableNum !== undefined) params.append('tableNum', tableNum.toString());
   if (isActive !== undefined) params.append('isActive', isActive.toString());
 
-  const response = await fetch(`${BASE_URL}/customers?${params.toString()}`);
+  const response = await fetch(`${BASE_URL}/customers?${params.toString()}`, {
+    ...options,
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));

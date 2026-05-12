@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getMenus } from "@/lib/api/menus";
 import { getMetadata, updateMetadata } from "@/lib/api/metadata";
-import { updateAdminPassword } from "@/lib/api/admin";
+import { updateAdminPassword, clearAllData } from "@/lib/api/admin";
 import { MenuResponse, MetaDataResponse, MetaDataUpdateRequest, AdminPasswordUpdateRequest } from "@/lib/definitions";
 import ExistingMenuCard from "@/components/admin/existing-menu-card";
 import NewMenuForm from "@/components/admin/new-menu-form";
@@ -28,6 +28,8 @@ export default function Page() {
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState<string | null>(null);
+
+  const [clearLoading, setClearLoading] = useState(false);
 
   const fetchMenus = async () => {
     try {
@@ -106,6 +108,20 @@ export default function Page() {
       setPwError(err instanceof Error ? err.message : "비밀번호 변경에 실패했습니다.");
     } finally {
       setPwLoading(false);
+    }
+  };
+
+  const handleClearData = async () => {
+    if (!confirm("정말 모든 손님 및 주문 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+
+    try {
+      setClearLoading(true);
+      await clearAllData();
+      alert("모든 데이터가 성공적으로 삭제되었습니다.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "데이터 삭제에 실패했습니다.");
+    } finally {
+      setClearLoading(false);
     }
   };
 
@@ -307,6 +323,25 @@ export default function Page() {
           editMenu={editMenu}
           onCancelEdit={() => setEditMenu(null)}
         />
+      </section>
+
+      {/* 데이터 초기화 섹션 */}
+      <section className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-red/30 mb-20">
+        <h2 className="text-2xl font-bold mb-6 text-red">데이터 초기화</h2>
+        <p className="text-sm text-deep-brown mb-6">
+          현재 등록된 모든 손님 정보, 주문 내역, 주문 항목 데이터를 삭제합니다. 테이블 정보와 메뉴 설정은 유지됩니다.
+          <br />
+          <span className="font-bold text-red">주의: 삭제된 데이터는 복구할 수 없습니다.</span>
+        </p>
+        <div className="flex justify-end">
+          <button
+            onClick={handleClearData}
+            disabled={clearLoading}
+            className="px-6 py-2 bg-red text-white rounded hover:bg-red/80 transition-colors disabled:opacity-50 font-bold shadow-md active:scale-95"
+          >
+            {clearLoading ? "삭제 중..." : "손님 및 주문 데이터 삭제"}
+          </button>
+        </div>
       </section>
     </main>
   );
