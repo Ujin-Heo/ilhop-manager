@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..database import crud
 from ..database.models import get_db
 from ..schemas.rest_schemas import MetaDataResponse, MetaDataUpdateRequest
+from ..modules.auth import get_current_admin
 
 router = APIRouter(prefix="/metadata", tags=["metadata"])
 
@@ -16,7 +17,8 @@ async def get_metadata(db: AsyncSession = Depends(get_db)):
 @router.patch("", response_model=MetaDataResponse)
 async def update_metadata(
     request: MetaDataUpdateRequest, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin)
 ):
     """
     매장의 기본 설정 정보를 업데이트합니다.

@@ -30,6 +30,7 @@ export async function createMenu(data: MenuCreateRequest): Promise<MenuResponse>
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -46,6 +47,7 @@ export async function createMenu(data: MenuCreateRequest): Promise<MenuResponse>
 export async function deleteMenu(menuId: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/menus/${menuId}`, {
     method: 'DELETE',
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -67,6 +69,7 @@ export async function updateMenu(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -90,6 +93,7 @@ export async function updateMenuIndex(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {

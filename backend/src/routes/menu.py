@@ -16,6 +16,7 @@ from ..schemas.rest_schemas import (
     MenuUpdateRequest,
     MenuIndexUpdateRequest,
 )
+from ..modules.auth import get_current_admin
 
 router = APIRouter()
 
@@ -57,6 +58,7 @@ async def get_menus(
 async def create_menu(
     request_data: MenuCreateRequest,  # Request Body (Pydantic)
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     메뉴판에 새로운 메뉴를 추가합니다. 백엔드에서는 `menu_id`를 UUID로 자동 생성합니다.
@@ -96,6 +98,7 @@ async def update_menu(
     menu_id: str,
     request_data: MenuUpdateRequest,
     db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
 ):
     """
     특정 메뉴의 정보를 수정합니다.
@@ -134,6 +137,7 @@ async def update_menu_index(
     menu_id: str,
     request_data: MenuIndexUpdateRequest,
     db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
 ):
     """
     특정 메뉴의 정렬 순서(`index`)를 수정합니다.
@@ -165,6 +169,7 @@ async def update_menu_index(
 async def delete_menu(
     menu_id: str,
     db: AsyncSession = Depends(get_db),
+    admin=Depends(get_current_admin),
 ):
     """
     지정한 UUID를 가진 메뉴를 삭제합니다.\n

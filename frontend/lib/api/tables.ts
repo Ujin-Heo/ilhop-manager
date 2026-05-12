@@ -9,7 +9,9 @@ import {
  * 전체 Table 및 현재 이용 현황 조회
  */
 export async function getTables(): Promise<TableStatus[]> {
-  const response = await fetch(`${BASE_URL}/tables`);
+  const response = await fetch(`${BASE_URL}/tables`, {
+    credentials: 'include',
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -29,6 +31,7 @@ export async function createTable(data: TableCreateRequest): Promise<TableStatus
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -52,6 +55,7 @@ export async function updateTable(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -68,6 +72,7 @@ export async function updateTable(
 export async function deleteTable(tableId: string): Promise<void> {
   const response = await fetch(`${BASE_URL}/tables/${tableId}`, {
     method: 'DELETE',
+    credentials: 'include',
   });
 
   if (!response.ok) {

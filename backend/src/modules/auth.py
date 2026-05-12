@@ -2,6 +2,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
+from fastapi import Cookie, HTTPException, status
 import os
 
 # Password hashing context
@@ -39,3 +40,18 @@ def verify_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+async def get_current_admin(admin_session: Optional[str] = Cookie(None)):
+    if not admin_session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="인증되지 않은 사용자입니다.",
+        )
+    payload = verify_token(admin_session)
+    if not payload or payload.get("sub") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="인증 토큰이 유효하지 않습니다.",
+        )
+    return payload

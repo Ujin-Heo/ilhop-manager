@@ -2,7 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from .routes import table, customer, menu, order, order_item, external, websocket, metadata, admin
+from .routes import (
+    table,
+    customer,
+    menu,
+    order,
+    order_item,
+    external,
+    websocket,
+    metadata,
+    admin,
+)
 
 app = FastAPI()
 

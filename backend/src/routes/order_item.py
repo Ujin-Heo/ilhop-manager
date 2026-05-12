@@ -10,6 +10,7 @@ from ..schemas.rest_schemas import (
 )
 from ..schemas.ws_schemas import ItemServedUpdatedMessage
 from ..modules.websocket_manager import manager
+from ..modules.auth import get_current_admin
 
 router = APIRouter()
 
@@ -27,6 +28,7 @@ async def update_order_item_served_status(
     order_item_id: str,
     request_data: OrderItemServedUpdateRequest,  # Request Body (Pydantic)
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     홀서빙 담당자가 특정 메뉴의 서빙을 완료했을 때 호출합니다.\n

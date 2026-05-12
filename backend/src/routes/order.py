@@ -23,6 +23,7 @@ from ..schemas.ws_schemas import (
     MemoUpdatedMessage,
 )
 from ..modules.websocket_manager import manager
+from ..modules.auth import get_current_admin
 
 from typing import Annotated
 
@@ -40,6 +41,7 @@ router = APIRouter()
 async def get_orders(
     is_paid: Annotated[bool | None, Query(alias="isPaid")] = None,
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     시스템의 모든 주문 내역을 개별 건별로 조회합니다.\n
@@ -125,6 +127,7 @@ async def update_order_is_paid(
     order_id: str,  # Path Parameter
     request_data: OrderPaymentUpdateRequest,  # Request Body (Pydantic)
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     현금 결제 완료 또는 계좌 이체 수동 확인 시 사용합니다.\n
@@ -184,6 +187,7 @@ async def update_order_memo(
     order_id: str,  # Path Parameter
     request_data: OrderMemoUpdateRequest,  # Request Body (Pydantic)
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     특정 주문에 대해 관리자(캐셔)가 메모를 작성하거나 수정합니다.\n

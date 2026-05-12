@@ -10,6 +10,7 @@ from ..database.crud import (
     delete_table_from_db,
 )
 from ..schemas.rest_schemas import TableStatus, TableCreateRequest, TableUpdateRequest
+from ..modules.auth import get_current_admin
 
 router = APIRouter()
 
@@ -24,6 +25,7 @@ router = APIRouter()
 )
 async def get_tables(
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     모든 테이블의 위치(grid) 정보와 이용 가능 여부를 반환합니다.
@@ -58,6 +60,7 @@ async def get_tables(
 async def create_table(
     request_data: TableCreateRequest,  # Request Body (Pydantic)
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     매장에 새로운 테이블을 추가하거나 그리드 상의 위치를 지정합니다.
@@ -98,6 +101,7 @@ async def update_table(
     table_id: str,  # Path Parameter
     request_data: TableUpdateRequest,  # Request Body (Pydantic)
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     특정 테이블의 번호(`tableNum`)를 변경하거나,
@@ -136,6 +140,7 @@ async def update_table(
 async def delete_table(
     table_id: str,  # Path Parameter
     db: AsyncSession = Depends(get_db),  # DB Session Injection
+    admin=Depends(get_current_admin),
 ):
     """
     지정한 UUID를 가진 테이블을 시스템에서 삭제합니다.
