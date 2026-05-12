@@ -89,7 +89,7 @@ class Customer(Base):
         nullable=True,
     )
     entry_time: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
@@ -132,7 +132,7 @@ class Order(Base):
         nullable=False,
     )
     order_time: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP")
+        DateTime(timezone=True), nullable=False, server_default=text("CURRENT_TIMESTAMP")
     )
     total_price: Mapped[int] = mapped_column(BigInteger, nullable=False)
     depositor: Mapped[str | None] = mapped_column(String(50), nullable=True)

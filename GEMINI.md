@@ -38,3 +38,18 @@
     - **Server-side**: Use the full backend URL (e.g., `process.env.NEXT_PUBLIC_API_URL`) as rewrites don't apply to server-side `fetch`.
 - **Cookie Attributes**: Authentication cookies (e.g., `admin_session`) MUST use `samesite="none"` and `secure=True`.
 - **Environment Variables**: Sensitive keys like `SECRET_KEY` must be managed via environment variables (Railway/`.env`) and never hardcoded.
+
+## 5. Timezone Strategy
+
+### Standards
+- **Database (PostgreSQL)**: All timestamp columns MUST use `TIMESTAMP WITH TIME ZONE` (`timestamptz`).
+- **Backend (FastAPI)**: 
+    - Use `DateTime(timezone=True)` in SQLAlchemy models.
+    - Use standard `datetime.datetime` in Pydantic schemas (avoid `NaiveDatetime`).
+    - Logic should operate in UTC.
+- **Frontend (React)**: 
+    - Receive timestamps in ISO 8601 format (e.g., `2024-05-13T12:00:00Z`).
+    - Convert to local time (KST) for display using `new Date()` or local formatting utilities.
+
+### Rationale
+Ensures data consistency across different server regions (e.g., Railway Singapore) while providing accurate local time to users in Korea without manual offset calculations.

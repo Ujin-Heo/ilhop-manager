@@ -14,7 +14,7 @@ CREATE TABLE "tables" (
 CREATE TABLE "customers" (
     "customer_id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     "table_id"    uuid NOT NULL CONSTRAINT "FK_customers_tables" REFERENCES "tables"("table_id"),
-    "entry_time"  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "entry_time"  timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "is_active"   boolean NOT NULL DEFAULT false
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE "menus" (
 CREATE TABLE "orders" (
     "order_id"       uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     "customer_id"    uuid NOT NULL CONSTRAINT "FK_orders_customers" REFERENCES "customers"("customer_id"),
-    "order_time"     timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "order_time"     timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "total_price"    bigint NOT NULL,
     "depositor"      varchar(50),
     "is_paid" boolean DEFAULT false NOT NULL,
