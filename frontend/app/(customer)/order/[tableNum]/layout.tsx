@@ -4,6 +4,7 @@ import { CartProvider } from "@/lib/contexts/cart-context";
 import { CustomerProvider } from "@/lib/contexts/customer-context";
 import CustomerFooter from "@/components/customer/customer-footer";
 import { getCustomers } from "@/lib/api/customers";
+import { CustomerBrief } from "@/lib/definitions";
 
 interface CustomerLayoutProp {
   params: Promise<{ tableNum: string }>;
@@ -16,12 +17,14 @@ export default async function CustomerLayout({
 }: CustomerLayoutProp) {
   const { tableNum } = await params;
 
-  let customer = null;
+  let customers: CustomerBrief[] = [];
   try {
-    customer = await getCustomers(parseInt(tableNum), true);
-  } catch (e) {
+    customers = await getCustomers(parseInt(tableNum), true);
+  } catch (_e) {
     // Customer not found or error
   }
+
+  const customer = customers[0];
 
   if (!customer) {
     return (

@@ -14,6 +14,7 @@ export function useWebsocket({ onMessage, url = "/ws/orders" }: UseWebsocketOpti
   // 페이지가 리렌더링되어도 WebSocket 객체와 타이머 ID가 초기화되지 않고 유지되도록 useRef 사용
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const connectRef = useRef<() => void>(() => {});
 
   // ===== connect 함수: 실제 웹소켓 연결을 생성하고, 각종 이벤트 핸들러를 등록함 =========================
   const connect = useCallback(() => {
@@ -55,7 +56,7 @@ export function useWebsocket({ onMessage, url = "/ws/orders" }: UseWebsocketOpti
     socket.onclose = () => {
       console.log("WebSocket disconnected");
       reconnectTimeoutRef.current = setTimeout(() => {
-        connect();
+        connectRef.current();
       }, 3000);
     };
 
@@ -68,6 +69,11 @@ export function useWebsocket({ onMessage, url = "/ws/orders" }: UseWebsocketOpti
     socketRef.current = socket;
   }, [onMessage, url]);
   // ==== connect 함수 끝 ========================================================================
+
+  // connect 함수를 ref에 저장
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   useEffect(() => {
     // effect 함수: 의존성 배열([connect]) 안의 컴포너트가 변경될 때마다 실행됨
@@ -84,7 +90,7 @@ export function useWebsocket({ onMessage, url = "/ws/orders" }: UseWebsocketOpti
     };
   }, [connect]);
 
-  const sendMessage = useCallback((data: any) => {
+  const sendMessage = useCallback((data: unknown) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify(data));
     } else {

@@ -10,8 +10,21 @@ export default async function Page({
   params: Promise<{ tableNum: string }>;
 }) {
   const { tableNum } = await params;
-  
-  const customer = await getCustomers(parseInt(tableNum), true);
+
+  const customers = await getCustomers(parseInt(tableNum), true);
+  const customer = customers[0];
+
+  if (!customer) {
+    return (
+      <main className="flex-1 space-y-8 px-6 pt-6 pb-24 text-center">
+        <p className="text-lg font-bold text-deep-brown">활성화된 손님 정보가 없습니다.</p>
+        <Link href={`/order/${tableNum}`} className="mt-4 inline-block text-sepia underline">
+          돌아가기
+        </Link>
+      </main>
+    );
+  }
+
   const orderSummary = await getCustomerOrderSummary(customer.customerId);
 
   return (

@@ -45,7 +45,7 @@ export default async function Page() {
                 변합니다. 총무의 스마트폰에 설치한 MacroDroid를 통해 자동으로
                 입금이 확인되거나,{" "}
                 <span className="text-blue font-medium underline underline-offset-4 decoration-blue/30">
-                  "입금 여부"
+                  &quot;입금 여부&quot;
                 </span>
                 란을 클릭하여 수동으로 입금을 확인할 수 있습니다.
               </li>
@@ -58,7 +58,7 @@ export default async function Page() {
               </li>
               <li>
                 <span className="text-sepia font-medium underline underline-offset-4 decoration-sepia/30">
-                  "비고"
+                  &quot;비고&quot;
                 </span>
                 란을 클릭하여 메모를 남길 수 있습니다.
               </li>

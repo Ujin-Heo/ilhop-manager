@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { getMenus } from "@/lib/api/menus";
 import { getMetadata, updateMetadata } from "@/lib/api/metadata";
 import { updateAdminPassword, clearAllData } from "@/lib/api/admin";
-import { MenuResponse, MetaDataResponse, MetaDataUpdateRequest, AdminPasswordUpdateRequest } from "@/lib/definitions";
+import {
+  MenuResponse,
+  MetaDataResponse,
+  MetaDataUpdateRequest,
+  AdminPasswordUpdateRequest,
+} from "@/lib/definitions";
 import ExistingMenuCard from "@/components/admin/existing-menu-card";
 import NewMenuForm from "@/components/admin/new-menu-form";
 
@@ -60,7 +65,9 @@ export default function Page() {
       });
     } catch (err) {
       setMetaError(
-        err instanceof Error ? err.message : "기본 설정을 불러오는데 실패했습니다.",
+        err instanceof Error
+          ? err.message
+          : "기본 설정을 불러오는데 실패했습니다.",
       );
     } finally {
       setMetaLoading(false);
@@ -105,14 +112,21 @@ export default function Page() {
       setPwFormData({ currentPassword: "", newPassword: "" });
       setConfirmPassword("");
     } catch (err) {
-      setPwError(err instanceof Error ? err.message : "비밀번호 변경에 실패했습니다.");
+      setPwError(
+        err instanceof Error ? err.message : "비밀번호 변경에 실패했습니다.",
+      );
     } finally {
       setPwLoading(false);
     }
   };
 
   const handleClearData = async () => {
-    if (!confirm("정말 모든 손님 및 주문 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+    if (
+      !confirm(
+        "정말 모든 손님 및 주문 데이터를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      )
+    )
+      return;
 
     try {
       setClearLoading(true);
@@ -130,7 +144,7 @@ export default function Page() {
       {/* 기본 설정 섹션 */}
       <section className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-light-gray">
         <h2 className="text-2xl font-bold mb-6 text-black">기본 설정</h2>
-        
+
         {metaLoading && !metadata ? (
           <div className="text-sepia">로딩 중...</div>
         ) : metaError ? (
@@ -139,62 +153,98 @@ export default function Page() {
           <form onSubmit={handleUpdateMetadata} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-deep-brown">입금 계좌 번호</label>
+                <label className="text-sm font-semibold text-deep-brown">
+                  입금 은행명 및 계좌 번호
+                </label>
                 <input
                   type="text"
                   disabled={!isEditingMeta}
                   value={formData.accountNumber || ""}
-                  onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, accountNumber: e.target.value })
+                  }
                   className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-deep-brown">예금주</label>
+                <label className="text-sm font-semibold text-deep-brown">
+                  예금주
+                </label>
                 <input
                   type="text"
                   disabled={!isEditingMeta}
                   value={formData.accountHolder || ""}
-                  onChange={(e) => setFormData({ ...formData, accountHolder: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, accountHolder: e.target.value })
+                  }
                   className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-deep-brown">최대 테이블 행(Row)</label>
+                <label className="text-sm font-semibold text-deep-brown">
+                  최대 테이블 행(Row)
+                </label>
                 <input
                   type="number"
                   disabled={!isEditingMeta}
                   value={formData.maxTableRow || ""}
-                  onChange={(e) => setFormData({ ...formData, maxTableRow: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      maxTableRow: parseInt(e.target.value),
+                    })
+                  }
                   className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-deep-brown">최대 테이블 열(Col)</label>
+                <label className="text-sm font-semibold text-deep-brown">
+                  최대 테이블 열(Col)
+                </label>
                 <input
                   type="number"
                   disabled={!isEditingMeta}
                   value={formData.maxTableCol || ""}
-                  onChange={(e) => setFormData({ ...formData, maxTableCol: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      maxTableCol: parseInt(e.target.value),
+                    })
+                  }
                   className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-deep-brown">기본 이용 시간 (분)</label>
+                <label className="text-sm font-semibold text-deep-brown">
+                  기본 이용 시간 (분)
+                </label>
                 <input
                   type="number"
                   disabled={!isEditingMeta}
                   value={formData.standardTime || ""}
-                  onChange={(e) => setFormData({ ...formData, standardTime: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      standardTime: parseInt(e.target.value),
+                    })
+                  }
                   className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-deep-brown">연장 추가 시간 (분)</label>
+                <label className="text-sm font-semibold text-deep-brown">
+                  연장 추가 시간 (분)
+                </label>
                 <input
                   type="number"
                   disabled={!isEditingMeta}
                   value={formData.extraTime || ""}
-                  onChange={(e) => setFormData({ ...formData, extraTime: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      extraTime: parseInt(e.target.value),
+                    })
+                  }
                   className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
                 />
               </div>
@@ -237,35 +287,50 @@ export default function Page() {
 
       {/* 관리자 비밀번호 변경 섹션 */}
       <section className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-light-gray">
-        <h2 className="text-2xl font-bold mb-6 text-black">관리자 비밀번호 변경</h2>
-        
+        <h2 className="text-2xl font-bold mb-6 text-black">
+          관리자 비밀번호 변경
+        </h2>
+
         {pwError && <div className="text-red-600 mb-4">{pwError}</div>}
         {pwSuccess && <div className="text-green-600 mb-4">{pwSuccess}</div>}
 
         <form onSubmit={handleUpdatePassword} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-deep-brown">현재 비밀번호</label>
+              <label className="text-sm font-semibold text-deep-brown">
+                현재 비밀번호
+              </label>
               <input
                 type="password"
                 required
                 value={pwFormData.currentPassword}
-                onChange={(e) => setPwFormData({ ...pwFormData, currentPassword: e.target.value })}
+                onChange={(e) =>
+                  setPwFormData({
+                    ...pwFormData,
+                    currentPassword: e.target.value,
+                  })
+                }
                 className="p-2 border border-light-gray rounded bg-warm-white text-black"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-deep-brown">새 비밀번호</label>
+              <label className="text-sm font-semibold text-deep-brown">
+                새 비밀번호
+              </label>
               <input
                 type="password"
                 required
                 value={pwFormData.newPassword}
-                onChange={(e) => setPwFormData({ ...pwFormData, newPassword: e.target.value })}
+                onChange={(e) =>
+                  setPwFormData({ ...pwFormData, newPassword: e.target.value })
+                }
                 className="p-2 border border-light-gray rounded bg-warm-white text-black"
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-deep-brown">비밀번호 확인</label>
+              <label className="text-sm font-semibold text-deep-brown">
+                비밀번호 확인
+              </label>
               <input
                 type="password"
                 required
@@ -309,7 +374,10 @@ export default function Page() {
                   onDelete={fetchMenus}
                   onEdit={(m) => {
                     setEditMenu(m);
-                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    window.scrollTo({
+                      top: document.body.scrollHeight,
+                      behavior: "smooth",
+                    });
                   }}
                 />
               ))}
@@ -329,9 +397,12 @@ export default function Page() {
       <section className="w-full max-w-4xl bg-white p-8 rounded-lg shadow-sm border border-red/30 mb-20">
         <h2 className="text-2xl font-bold mb-6 text-red">데이터 초기화</h2>
         <p className="text-sm text-deep-brown mb-6">
-          현재 등록된 모든 손님 정보, 주문 내역, 주문 항목 데이터를 삭제합니다. 테이블 정보와 메뉴 설정은 유지됩니다.
+          현재 등록된 모든 손님 정보, 주문 내역, 주문 항목 데이터를 삭제합니다.
+          테이블 정보와 메뉴 설정은 유지됩니다.
           <br />
-          <span className="font-bold text-red">주의: 삭제된 데이터는 복구할 수 없습니다.</span>
+          <span className="font-bold text-red">
+            주의: 삭제된 데이터는 복구할 수 없습니다.
+          </span>
         </p>
         <div className="flex justify-end">
           <button

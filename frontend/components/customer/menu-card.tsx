@@ -12,7 +12,7 @@ interface MenuCardProps {
 }
 
 export default function MenuCard({ menu }: MenuCardProps) {
-  const { cart, setCart } = useCart();
+  const { setCart } = useCart();
   const defaultOption =
     menu.options && menu.options.length > 0 ? menu.options[0] : "";
 
@@ -37,7 +37,7 @@ export default function MenuCard({ menu }: MenuCardProps) {
           item.selectedOption === newItem.selectedOption,
       );
 
-      let newOrderItems = [...prev.orderItems];
+      const newOrderItems = [...prev.orderItems];
 
       if (existingItemIndex > -1) {
         newOrderItems[existingItemIndex] = {

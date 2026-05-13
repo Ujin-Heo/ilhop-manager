@@ -10,11 +10,7 @@ import { updateOrderItemServedStatus } from "@/lib/api/order-items";
 export default function Page() {
   const [orders, setOrders] = useState<OrderDetail[]>([]);
 
-  useEffect(() => {
-    fetchPaidOrders();
-  }, []);
-
-  const fetchPaidOrders = async () => {
+  const fetchPaidOrders = useCallback(async () => {
     try {
       const paidOrdersData = await getOrders(true); // Only fetch paid orders for serving
       setOrders(paidOrdersData);
@@ -22,7 +18,11 @@ export default function Page() {
       console.error(error);
       alert("주문 내역을 불러오는 데 실패했습니다.");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchPaidOrders();
+  }, [fetchPaidOrders]);
 
   const handleToggleServed = async (
     orderItemId: string,
