@@ -672,8 +672,8 @@ async def get_metadata_from_db(db: AsyncSession) -> MetaData:
     if metadata is None:
         # 기본값 생성
         metadata = MetaData(
-            account_number="000-000-000000",
-            account_holder="기본 소유주",
+            account_number="토스뱅크 000-000-000000",
+            account_holder="김땡땡",
             max_table_row=5,
             max_table_col=5,
             standard_time=90,

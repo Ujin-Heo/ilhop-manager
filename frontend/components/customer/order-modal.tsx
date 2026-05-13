@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { X, Loader2, CheckCircle2 } from "lucide-react";
+import { X, Loader2, CheckCircle2, Copy, Check } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { createOrder, updateOrderMemo } from "@/lib/api/orders";
 import { getMetadata } from "@/lib/api/metadata";
@@ -42,6 +42,7 @@ export default function OrderModal({
   const [countdown, setCountdown] = useState(5);
   const [loading, setLoading] = useState(false);
   const [metadata, setMetadata] = useState<MetaDataResponse | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Fetch metadata on mount
   useEffect(() => {
@@ -55,6 +56,18 @@ export default function OrderModal({
     };
     fetchMeta();
   }, []);
+
+  const handleCopy = async () => {
+    if (metadata?.accountNumber) {
+      try {
+        await navigator.clipboard.writeText(metadata.accountNumber);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Failed to copy:", err);
+      }
+    }
+  };
 
   // WebSocket for payment status
   useWebsocket({
@@ -154,6 +167,7 @@ export default function OrderModal({
       setIsPaid(false);
       setCountdown(5);
       setLoading(false);
+      setCopied(false);
     }
   }, [isOpen]);
 
@@ -260,7 +274,7 @@ export default function OrderModal({
                   <span className="text-blue font-bold">
                     {formatCurrency(cart.totalAmount)}
                   </span>
-                  원을 결제합니다.
+                  을 결제합니다.
                   <br />
                   직원을 호출해주세요.
                 </p>
@@ -278,10 +292,29 @@ export default function OrderModal({
                     (으)로 입금해주세요.
                   </p>
                   <div className="rounded-2xl bg-white p-6 font-bold border border-sepia/10 shadow-inner">
-                    <p className="text-sepia text-sm mb-1">입금 계좌 안내</p>
-                    <p className="text-xl text-deep-brown">
-                      {metadata?.accountNumber || "로딩 중..."}
-                    </p>
+                    <p className="text-sepia text-sm mb-1">입금 계좌 안내 (클릭 시 복사)</p>
+                    <div
+                      onClick={handleCopy}
+                      className="group relative flex cursor-pointer flex-col items-center gap-1 active:scale-95 transition-transform"
+                    >
+                      <p className="text-xl text-deep-brown flex items-center gap-2">
+                        {metadata?.accountNumber || "로딩 중..."}
+                        {metadata?.accountNumber && (
+                          <span className="text-sepia/50 group-hover:text-sepia">
+                            {copied ? (
+                              <Check size={18} className="text-green" />
+                            ) : (
+                              <Copy size={18} />
+                            )}
+                          </span>
+                        )}
+                      </p>
+                      {copied && (
+                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-deep-brown px-2 py-1 text-xs text-white">
+                          복사 완료!
+                        </span>
+                      )}
+                    </div>
                     <p className="text-lg text-deep-brown">
                       예금주: {metadata?.accountHolder || "로딩 중..."}
                     </p>
