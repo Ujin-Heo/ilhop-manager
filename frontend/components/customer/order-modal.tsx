@@ -71,7 +71,7 @@ export default function OrderModal({
 
   // WebSocket for payment status
   useWebsocket({
-    url: orderId ? `/ws/payment-status/${orderId}` : undefined,
+    url: orderId ? `/ws/payment-status/${orderId}` : null,
     onMessage: (message) => {
       if (message.event === "PAYMENT_CONFIRMED" && message.data.isPaid) {
         setIsPaid(true);

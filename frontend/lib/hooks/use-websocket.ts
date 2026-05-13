@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { BASE_URL } from "@/lib/api/config";
+import { WS_BASE_URL } from "@/lib/api/config";
 import { WebSocketMessage } from "@/lib/definitions";
 
 // 외부에서 훅을 사용할 때 넘겨줄 옵션
 interface UseWebsocketOptions {
   onMessage?: (message: WebSocketMessage) => void; // message를 받았을 때 실행할 콜백 함수
-  url?: string; // 연결할 url
+  url?: string | null; // 연결할 url (예: /ws/orders), null인 경우 연결하지 않음
 }
 
 export function useWebsocket({ onMessage, url = "/ws/orders" }: UseWebsocketOptions = {}) {
@@ -18,13 +18,14 @@ export function useWebsocket({ onMessage, url = "/ws/orders" }: UseWebsocketOpti
 
   // ===== connect 함수: 실제 웹소켓 연결을 생성하고, 각종 이벤트 핸들러를 등록함 =========================
   const connect = useCallback(() => {
+    // url이 없거나 null이면 연결하지 않음 (예: orderId가 아직 없는 경우)
+    if (!url) return;
+
     // 이미 웹소켓이 열려있는 상태라면 넘어감(이미 열려있는 것을 그대로 사용)
     if (socketRef.current?.readyState === WebSocket.OPEN) return;
 
-    // 동적 URL 생성: 현재 페이지가 http -> ws 선택, https -> wss 선택
-    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsBaseUrl = BASE_URL.replace(/^https?:\/\//, "");
-    const fullUrl = `${wsProtocol}//${wsBaseUrl}${url}`;
+    // WS_BASE_URL은 'ws://localhost:8000' 또는 'wss://backend.railway.app' 형태임
+    const fullUrl = `${WS_BASE_URL}${url}`;
 
     // 새로운 웹소켓 객체 생성
     const socket = new WebSocket(fullUrl);
