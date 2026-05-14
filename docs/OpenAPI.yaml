@@ -606,6 +606,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
   
+  /orders/{order_id}:
+    get:
+      tags:
+        - order
+      summary: "특정 주문 내역 조회 (손님/관리자 공용)"
+      description: |
+        주문 ID를 사용하여 특정 주문의 상세 정보를 조회합니다. 
+        손님이 입금 후 입금 확인 여부를 폴링(polling)할 때 사용될 수 있습니다.
+      operationId: getOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: "조회할 주문의 UUID"
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: "주문 상세 정보 반환"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '404':
+          description: "해당 주문을 찾을 수 없음"
+        default:
+          description: "서버 오류"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
   /orders/{order_id}/payment:
     patch:
       tags:

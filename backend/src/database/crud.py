@@ -560,6 +560,57 @@ async def add_new_order_to_db(
     return new_order_detail
 
 
+async def get_order_by_id_from_db(db: AsyncSession, order_id: str) -> OrderDetail:
+    """
+    특정 order_id를 사용하여 주문 정보를 가져옵니다.
+    """
+    stmt = (
+        select(Order, Table.table_num)
+        .join(Order.customer)
+        .join(Customer.table)
+        .options(
+            selectinload(Order.items)
+            .joinedload(OrderItem.menu)
+            .load_only(Menu.menu_name)
+        )
+        .where(Order.order_id == order_id)
+    )
+
+    result = await db.execute(stmt)
+    row: Row | None = result.mappings().one_or_none()
+
+    if row is None:
+        raise NoResultFound(f"order_id가 {order_id}인 주문을 찾을 수 없습니다.")
+
+    order_obj: Order = row["Order"]
+
+    order_item_briefs = [
+        OrderItemBrief(
+            order_item_id=item.order_item_id,
+            menu_id=item.menu_id,
+            menu_name=item.menu.menu_name if item.menu else "(삭제된 메뉴)",
+            quantity=item.quantity,
+            selected_option=item.selected_option,
+            is_served=item.is_served,
+        )
+        for item in order_obj.items
+    ]
+
+    order_detail = OrderDetail(
+        order_id=order_obj.order_id,
+        table_num=row["table_num"],
+        customer_id=order_obj.customer_id,
+        order_time=order_obj.order_time,
+        total_price=order_obj.total_price,
+        depositor=order_obj.depositor,
+        is_paid=order_obj.is_paid,
+        memo=order_obj.memo,
+        items=order_item_briefs,
+    )
+
+    return order_detail
+
+
 async def update_order_data_in_db(
     db: AsyncSession,
     order_id: str,

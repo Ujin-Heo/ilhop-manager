@@ -103,3 +103,22 @@ export async function updateOrderMemo(
 
   return response.json();
 }
+
+/**
+ * 특정 주문 상세 정보 조회 (입금 확인 폴링용)
+ */
+export async function getOrder(
+  orderId: string,
+  options?: RequestInit
+): Promise<OrderDetail> {
+  const response = await fetch(`${BASE_URL}/orders/${orderId}`, {
+    ...options,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || '주문 정보를 가져오는 데 실패했습니다.');
+  }
+
+  return response.json();
+}

@@ -7,6 +7,7 @@ from ..database.crud import (
     get_orders_from_db,
     add_new_order_to_db,
     update_order_data_in_db,
+    get_order_by_id_from_db,
 )
 from ..schemas.rest_schemas import (
     OrderDetail,
@@ -57,6 +58,38 @@ async def get_orders(
             detail=f"[❌ 잘못된 요청] {str(ve)}",
         )
     except Exception as e:  # 서버 내부 에러
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"[⚠️ 서버 오류] {str(e)}",
+        )
+
+
+@router.get(
+    "/orders/{order_id}",
+    operation_id="get_order",
+    response_model=OrderDetail,
+    status_code=status.HTTP_200_OK,
+    tags=["order"],
+    summary="특정 주문 내역 조회(손님/관리자 공용)",
+)
+async def get_order(
+    order_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    주문 ID를 사용하여 특정 주문의 상세 정보를 조회합니다.\n
+    손님이 입금 후 입금 확인 여부를 폴링(polling)할 때 사용될 수 있습니다.
+    """
+    try:
+        order_detail = await get_order_by_id_from_db(db, order_id)
+        return order_detail
+
+    except NoResultFound as nrfe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"[❌ 해당 주문을 찾을 수 없음] {str(nrfe)}",
+        )
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"[⚠️ 서버 오류] {str(e)}",

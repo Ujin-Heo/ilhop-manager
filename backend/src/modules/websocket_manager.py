@@ -36,7 +36,9 @@ class ConnectionManager:
         if str_id in self.customer_connections:
             await self.customer_connections[str_id].send_json(message)
         else:
-            print(f"[WebSocket] Customer {str_id} not found in connections. Current keys: {list(self.customer_connections.keys())}")
+            print(
+                f"[WebSocket] Customer {str_id} not found in connections. Current keys: {list(self.customer_connections.keys())}"
+            )
 
 
 manager = ConnectionManager()

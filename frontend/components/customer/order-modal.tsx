@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { X, Loader2, CheckCircle2, Copy, Check } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { createOrder, updateOrderMemo } from "@/lib/api/orders";
+import { createOrder, updateOrderMemo, getOrder } from "@/lib/api/orders";
 import { getMetadata } from "@/lib/api/metadata";
 import { MetaDataResponse } from "@/lib/definitions";
 import { useCart } from "@/lib/contexts/cart-context";
@@ -69,6 +69,21 @@ export default function OrderModal({
     }
   };
 
+  // Check payment status manually (for polling or visibility change)
+  const checkPaymentStatus = useCallback(async () => {
+    if (!orderId || isPaid) return;
+
+    try {
+      const order = await getOrder(orderId);
+      if (order.isPaid) {
+        setIsPaid(true);
+        setStep("payment-confirmed");
+      }
+    } catch (error) {
+      console.error("Failed to check payment status:", error);
+    }
+  }, [orderId, isPaid]);
+
   // WebSocket for payment status
   const handleMessage = useCallback(
     (message: any) => {
@@ -84,6 +99,29 @@ export default function OrderModal({
     url: orderId ? `/ws/payment-status/${orderId}` : null,
     onMessage: handleMessage,
   });
+
+  // Polling as a fallback (every 5 seconds)
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (step === "waiting-payment" && !isPaid && orderId) {
+      interval = setInterval(() => {
+        checkPaymentStatus();
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [step, isPaid, orderId, checkPaymentStatus]);
+
+  // Sync when user returns to the tab (Visibility API)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && step === "waiting-payment" && !isPaid) {
+        checkPaymentStatus();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [step, isPaid, checkPaymentStatus]);
 
   // Auto-close countdown
   useEffect(() => {
