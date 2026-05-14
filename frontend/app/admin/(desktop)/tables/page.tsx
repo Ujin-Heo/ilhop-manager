@@ -49,8 +49,12 @@ export default function Page() {
     }
   };
 
-  const maxRow = metadata?.maxTableRow || Math.max(0, ...tableInfos.map((t) => t.gridRow), 5);
-  const maxCol = metadata?.maxTableCol || Math.max(0, ...tableInfos.map((t) => t.gridCol), 8);
+  const maxRow =
+    metadata?.maxTableRow ||
+    Math.max(0, ...tableInfos.map((t) => t.gridRow), 5);
+  const maxCol =
+    metadata?.maxTableCol ||
+    Math.max(0, ...tableInfos.map((t) => t.gridCol), 8);
 
   if (isLoading) {
     return (
@@ -67,7 +71,7 @@ export default function Page() {
         style={{
           gridTemplateRows: `repeat(${maxRow}, min-content)`,
           gridTemplateColumns: `repeat(${maxCol}, min-content)`,
-          rowGap: "2.5rem",
+          rowGap: "3.5rem",
           columnGap: "1rem",
         }}
       >
