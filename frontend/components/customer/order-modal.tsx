@@ -70,14 +70,19 @@ export default function OrderModal({
   };
 
   // WebSocket for payment status
-  useWebsocket({
-    url: orderId ? `/ws/payment-status/${orderId}` : null,
-    onMessage: (message) => {
+  const handleMessage = useCallback(
+    (message: any) => {
       if (message.event === "PAYMENT_CONFIRMED" && message.data.isPaid) {
         setIsPaid(true);
         setStep("payment-confirmed");
       }
     },
+    [setStep, setIsPaid],
+  );
+
+  useWebsocket({
+    url: orderId ? `/ws/payment-status/${orderId}` : null,
+    onMessage: handleMessage,
   });
 
   // Auto-close countdown

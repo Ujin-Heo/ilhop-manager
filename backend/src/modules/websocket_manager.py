@@ -1,3 +1,4 @@
+import uuid
 from fastapi import WebSocket
 
 
@@ -15,13 +16,14 @@ class ConnectionManager:
     def disconnect_admin(self, websocket: WebSocket):
         self.admin_connections.remove(websocket)
 
-    async def connect_customer(self, websocket: WebSocket, order_id: str):
+    async def connect_customer(self, websocket: WebSocket, order_id: str | uuid.UUID):
         await websocket.accept()
-        self.customer_connections[order_id] = websocket
+        self.customer_connections[str(order_id)] = websocket
 
-    def disconnect_customer(self, order_id: str):
-        if order_id in self.customer_connections:
-            del self.customer_connections[order_id]
+    def disconnect_customer(self, order_id: str | uuid.UUID):
+        str_id = str(order_id)
+        if str_id in self.customer_connections:
+            del self.customer_connections[str_id]
 
     # 관리자들에게 새 주문/서빙 상태 등 알림 전송
     async def broadcast_to_admins(self, message: dict):
@@ -29,9 +31,12 @@ class ConnectionManager:
             await connection.send_json(message)
 
     # 특정 주문을 한 손님에게만 입금 확인 알림 전송
-    async def send_to_customer(self, order_id: str, message: dict):
-        if order_id in self.customer_connections:
-            await self.customer_connections[order_id].send_json(message)
+    async def send_to_customer(self, order_id: str | uuid.UUID, message: dict):
+        str_id = str(order_id)
+        if str_id in self.customer_connections:
+            await self.customer_connections[str_id].send_json(message)
+        else:
+            print(f"[WebSocket] Customer {str_id} not found in connections. Current keys: {list(self.customer_connections.keys())}")
 
 
 manager = ConnectionManager()
