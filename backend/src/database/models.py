@@ -175,6 +175,7 @@ class MetaData(Base):
     __tablename__ = "metadata"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(100), nullable=False, server_default=text("'그루터기 일일호프'"))
     account_number: Mapped[str] = mapped_column(String(50), nullable=False)
     account_holder: Mapped[str] = mapped_column(String(50), nullable=False)
     max_table_row: Mapped[int] = mapped_column(Integer, nullable=False)

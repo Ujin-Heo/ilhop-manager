@@ -337,6 +337,7 @@ class Error(BaseSchema):
 
 
 class MetaDataResponse(BaseSchema):
+    title: Annotated[str, Field(examples=["그루터기 일일호프"])]
     account_number: Annotated[str, Field(examples=["123-456-7890"])]
     account_holder: Annotated[str, Field(examples=["홍길동"])]
     max_table_row: Annotated[int, Field(examples=[5])]
@@ -346,6 +347,7 @@ class MetaDataResponse(BaseSchema):
 
 
 class MetaDataUpdateRequest(BaseSchema):
+    title: Annotated[str | None, Field(examples=["그루터기 일일호프"])] = None
     account_number: Annotated[str | None, Field(examples=["123-456-7890"])] = None
     account_holder: Annotated[str | None, Field(examples=["홍길동"])] = None
     max_table_row: Annotated[int | None, Field(examples=[5])] = None

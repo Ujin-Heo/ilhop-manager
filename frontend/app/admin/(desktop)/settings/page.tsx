@@ -56,6 +56,7 @@ export default function Page() {
       const data = await getMetadata();
       setMetadata(data);
       setFormData({
+        title: data.title,
         accountNumber: data.accountNumber,
         accountHolder: data.accountHolder,
         maxTableRow: data.maxTableRow,
@@ -152,6 +153,21 @@ export default function Page() {
         ) : (
           <form onSubmit={handleUpdateMetadata} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="flex flex-col gap-2 md:col-span-2">
+                <label className="text-sm font-semibold text-deep-brown">
+                  웹사이트 제목 (Title)
+                </label>
+                <input
+                  type="text"
+                  disabled={!isEditingMeta}
+                  value={formData.title || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="p-2 border border-light-gray rounded bg-warm-white text-black disabled:opacity-50"
+                  placeholder="예: 그루터기 일일호프"
+                />
+              </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-deep-brown">
                   입금 은행명 및 계좌 번호

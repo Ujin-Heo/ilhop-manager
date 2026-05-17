@@ -12,16 +12,17 @@ interface NavLink {
 
 interface NavigationBarProps {
   links: NavLink[];
+  title: string;
 }
 
-function NavigationBar({ links }: NavigationBarProps) {
+function NavigationBar({ links, title }: NavigationBarProps) {
   const pathname = usePathname();
 
   return (
     <nav className="flex w-full h-nav-bar-height pl-15 pr-30 justify-between items-center fixed top-0 z-50 bg-silver">
       <Link href="/admin" className="transition-all active:scale-95">
         <h1 className="font-bold text-xl text-black ">
-          그루터기 일일호프 관리자 페이지
+          {title} 관리자 페이지
         </h1>
       </Link>
       <div className="flex items-center gap-x-20">

@@ -51,8 +51,11 @@ CREATE TABLE "order_items" ( -- 'menus by order' 대신 직관적인 이름
 
     CREATE TABLE "metadata" (
     "id" SERIAL PRIMARY KEY,
+    "title" varchar(100) NOT NULL DEFAULT '그루터기 일일호프',
     "account_number" varchar(50) NOT NULL,
     "account_holder" varchar(50) NOT NULL,
     "max_table_row" int NOT NULL,
-    "max_table_col" int NOT NULL
+    "max_table_col" int NOT NULL,
+    "standard_time" int NOT NULL DEFAULT 90,
+    "extra_time" int NOT NULL DEFAULT 60
     );

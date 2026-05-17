@@ -1314,6 +1314,9 @@ components:
     MetaDataResponse:
       type: object
       properties:
+        title:
+          type: string
+          example: "그루터기 일일호프"
         accountNumber:
           type: string
           example: "123-456-7890"
@@ -1326,15 +1329,29 @@ components:
         maxTableCol:
           type: integer
           example: 5
+        standardTime:
+          type: integer
+          description: "기본 이용 시간 (분)"
+          example: 90
+        extraTime:
+          type: integer
+          description: "연장 시 추가 시간 (분)"
+          example: 60
       required:
+        - title
         - accountNumber
         - accountHolder
         - maxTableRow
         - maxTableCol
+        - standardTime
+        - extraTime
 
     MetaDataUpdateRequest:
       type: object
       properties:
+        title:
+          type: string
+          example: "그루터기 일일호프"
         accountNumber:
           type: string
           example: "123-456-7890"
@@ -1347,3 +1364,11 @@ components:
         maxTableCol:
           type: integer
           example: 5
+        standardTime:
+          type: integer
+          description: "기본 이용 시간 (분)"
+          example: 90
+        extraTime:
+          type: integer
+          description: "연장 시 추가 시간 (분)"
+          example: 60

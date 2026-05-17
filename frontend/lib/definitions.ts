@@ -176,6 +176,7 @@ export interface ErrorResponse {
 // --- MetaData Interfaces ---
 
 export interface MetaDataResponse {
+  title: string;
   accountNumber: string;
   accountHolder: string;
   maxTableRow: number;
@@ -185,6 +186,7 @@ export interface MetaDataResponse {
 }
 
 export interface MetaDataUpdateRequest {
+  title?: string;
   accountNumber?: string;
   accountHolder?: string;
   maxTableRow?: number;

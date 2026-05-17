@@ -1,13 +1,23 @@
+import { getMetadata } from "@/lib/api/metadata";
+
 export default async function Page() {
+  let title = "일일호프";
+  try {
+    const meta = await getMetadata();
+    title = meta.title;
+  } catch (error) {
+    console.error("Failed to fetch metadata for admin page:", error);
+  }
+
   return (
     <main className="p-8 bg-warm-beige min-h-screen text-deep-brown">
       <div className="max-w-4xl mx-auto space-y-12">
         <header className="border-b border-sepia pb-6">
           <h1 className="text-4xl font-bold mb-4 text-cinnamon">
-            그루터기 일일호프 관리자 가이드
+            {title} 관리자 가이드
           </h1>
           <p className="text-lg opacity-80">
-            그루터기 일일호프 관리자 페이지 사용 안내 페이지입니다.
+            {title} 관리자 페이지 사용 안내 페이지입니다.
           </p>
         </header>
 
