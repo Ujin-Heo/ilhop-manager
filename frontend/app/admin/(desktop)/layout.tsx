@@ -12,10 +12,12 @@ export default async function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let title = "일일호프";
+  let title = "그루터기 일일호프";
   try {
     const meta = await getMetadata();
-    title = meta.title;
+    if (meta && meta.title) {
+      title = meta.title;
+    }
   } catch (error) {
     console.error("Failed to fetch metadata for admin layout:", error);
   }

@@ -1,10 +1,12 @@
 import { getMetadata } from "@/lib/api/metadata";
 
 export default async function Page() {
-  let title = "일일호프";
+  let title = "그루터기 일일호프";
   try {
     const meta = await getMetadata();
-    title = meta.title;
+    if (meta && meta.title) {
+      title = meta.title;
+    }
   } catch (error) {
     console.error("Failed to fetch metadata for admin page:", error);
   }

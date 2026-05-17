@@ -19,7 +19,7 @@ export default async function CustomerLayout({
   const { tableNum } = await params;
 
   let customers: CustomerBrief[] = [];
-  let title = "일일호프";
+  let title = "그루터기 일일호프";
 
   try {
     const [customerList, meta] = await Promise.all([
@@ -27,7 +27,9 @@ export default async function CustomerLayout({
       getMetadata(),
     ]);
     customers = customerList;
-    title = meta.title;
+    if (meta && meta.title) {
+      title = meta.title;
+    }
   } catch (_e) {
     // metadata or customer fetch failed
   }

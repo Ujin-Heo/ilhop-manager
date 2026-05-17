@@ -56,7 +56,7 @@ export default function Page() {
       const data = await getMetadata();
       setMetadata(data);
       setFormData({
-        title: data.title,
+        title: data.title || "그루터기 일일호프",
         accountNumber: data.accountNumber,
         accountHolder: data.accountHolder,
         maxTableRow: data.maxTableRow,
@@ -430,6 +430,12 @@ export default function Page() {
           </button>
         </div>
       </section>
+
+      <footer className="w-full max-w-4xl text-center pb-10">
+        <p className="text-sm text-sepia opacity-60">
+          copyright 2026 Ujin-Heo
+        </p>
+      </footer>
     </main>
   );
 }

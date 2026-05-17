@@ -8,7 +8,9 @@ import {
  * 매장 기본 설정 조회
  */
 export async function getMetadata(): Promise<MetaDataResponse> {
-  const response = await fetch(`${BASE_URL}/metadata`);
+  const response = await fetch(`${BASE_URL}/metadata`, {
+    cache: 'no-store',
+  });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
